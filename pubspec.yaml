@@ -1,11 +1,10 @@
 name: anytime
-description: Anytime Podcast Player
+description: enpleineconscience.ch — Méditations guidées
 
-version: 1.4.2+241
+version: 2.0.0+2
 
 environment:
   sdk: '>=3.6.0 <4.0.0'
-  flutter: 3.38.5
 
 dependencies:
   accessibility_tools: ^2.4.1
@@ -66,8 +65,8 @@ dev_dependencies:
     sdk: flutter
 
 flutter_icons:
-  image_path_android: "assets/images/anytime-logo.png"
-  image_path_ios: "assets/images/anytime-logo-ios.png"
+  image_path_android: "assets/images/meditation-logo.png"
+  image_path_ios: "assets/images/meditation-logo.png"
   remove_alpha_ios: true
   android: true
   ios: true
@@ -76,6 +75,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/images/meditation-logo.png
     - assets/images/anytime-logo.png
     - assets/images/anytime-logo-s.png
     - assets/images/anytime-placeholder-logo.png
@@ -94,4 +94,3 @@ flutter:
     - family: MontserratBold
       fonts:
         - asset: assets/fonts/Montserrat-Bold.otf
-

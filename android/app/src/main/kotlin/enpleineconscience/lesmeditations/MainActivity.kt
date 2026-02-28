@@ -1,4 +1,4 @@
-package uk.me.amugofjava.anytime_podcast_player
+package enpleineconscience.lesmeditations
 
 import io.flutter.embedding.android.FlutterActivity
 

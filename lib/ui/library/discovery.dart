@@ -2,150 +2,103 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:anytime/bloc/discovery/discovery_bloc.dart';
-import 'package:anytime/bloc/discovery/discovery_state_event.dart';
-import 'package:anytime/ui/library/discovery_results.dart';
-import 'package:flutter/foundation.dart';
+import 'package:anytime/bloc/podcast/podcast_bloc.dart';
+import 'package:anytime/core/meditation_catalog.dart';
+import 'package:anytime/entities/podcast.dart';
+import 'package:anytime/ui/podcast/podcast_details.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
-/// This class is the root class for rendering the Discover tab.
-///
-/// This UI can optionally show a list of genres provided by iTunes/PodcastIndex.
-class Discovery extends StatefulWidget {
-  static const fetchSize = 20;
-  final bool categories;
-
-  const Discovery({
-    super.key,
-    this.categories = false,
-  });
-
-  @override
-  State<StatefulWidget> createState() => _DiscoveryState();
-}
-
-class _DiscoveryState extends State<Discovery> {
-  @override
-  void initState() {
-    super.initState();
-
-    final bloc = Provider.of<DiscoveryBloc>(context, listen: false);
-
-    bloc.discover(DiscoveryChartEvent(
-      count: Discovery.fetchSize,
-      genre: bloc.selectedGenre.genre,
-      countryCode: PlatformDispatcher.instance.locale.countryCode?.toLowerCase() ?? '',
-      languageCode: PlatformDispatcher.instance.locale.languageCode,
-    ));
-  }
+/// Displays the fixed meditation catalog as a list of categories.
+/// Each category corresponds to a podcast feed from enpleineconscience.ch.
+class Discovery extends StatelessWidget {
+  const Discovery({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final bloc = Provider.of<DiscoveryBloc>(context);
-
-    return widget.categories
-        ? MultiSliver(
-            children: [
-              SliverPersistentHeader(
-                delegate: MyHeaderDelegate(bloc),
-                pinned: true,
-                floating: false,
-              ),
-              DiscoveryResults(data: bloc.results),
-            ],
-          )
-        : DiscoveryResults(data: bloc.results);
-  }
-}
-
-/// This delegate is responsible for rendering the horizontal scrolling list of categories
-/// that can optionally be displayed at the top of the Discovery results page.
-class MyHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final DiscoveryBloc discoveryBloc;
-
-  MyHeaderDelegate(this.discoveryBloc);
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return CategorySelectorWidget(discoveryBloc: discoveryBloc);
-  }
-
-  @override
-  double get maxExtent => 56.0;
-
-  @override
-  double get minExtent => 56.0;
-
-  @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) => true;
-}
-
-class CategorySelectorWidget extends StatefulWidget {
-  final ItemScrollController itemScrollController = ItemScrollController();
-
-  CategorySelectorWidget({
-    super.key,
-    required this.discoveryBloc,
-  });
-
-  final DiscoveryBloc discoveryBloc;
-
-  @override
-  State<CategorySelectorWidget> createState() => _CategorySelectorWidgetState();
-}
-
-class _CategorySelectorWidgetState extends State<CategorySelectorWidget> {
-  @override
-  Widget build(BuildContext context) {
-    String selectedCategory = widget.discoveryBloc.selectedGenre.genre;
-
-    return Container(
-      width: double.infinity,
-      color: Theme.of(context).canvasColor,
-      child: StreamBuilder<List<String>>(
-          stream: widget.discoveryBloc.genres,
-          initialData: const [],
-          builder: (context, snapshot) {
-            var i = widget.discoveryBloc.selectedGenre.index;
-
-            return snapshot.hasData && snapshot.data!.isNotEmpty
-                ? ScrollablePositionedList.builder(
-                    initialScrollIndex: (i > 0) ? i : 0,
-                    itemScrollController: widget.itemScrollController,
-                    itemCount: snapshot.data!.length,
-                    scrollDirection: Axis.horizontal,
-                    itemBuilder: (context, i) {
-                      final item = snapshot.data![i];
-                      final padding = i == 0 ? 14.0 : 8.0;
-                      final isSelected = item == selectedCategory || (selectedCategory.isEmpty && i == 0);
-
-                      return Container(
-                        margin: EdgeInsets.only(left: padding),
-                        child: ChoiceChip(
-                          selected: isSelected,
-                          padding: const EdgeInsets.all(6.0),
-                          showCheckmark: true,
-                          onSelected: (_) {
-                            setState(() {
-                              selectedCategory = item;
-                            });
-
-                            widget.discoveryBloc.discover(DiscoveryChartEvent(
-                              count: Discovery.fetchSize,
-                              genre: item,
-                              countryCode: PlatformDispatcher.instance.locale.countryCode?.toLowerCase() ?? '',
-                              languageCode: PlatformDispatcher.instance.locale.languageCode,
-                            ));
-                          },
-                          label: Text(item),
-                        ),
-                      );
-                    })
-                : Container();
-          }),
+    return MultiSliver(
+      children: [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (BuildContext context, int index) {
+                final feed = MeditationCatalog.feeds[index];
+                return _CatalogTile(feed: feed);
+              },
+              childCount: MeditationCatalog.feeds.length,
+            ),
+          ),
+        ),
+      ],
     );
+  }
+}
+
+class _CatalogTile extends StatelessWidget {
+  final MeditationFeed feed;
+
+  const _CatalogTile({required this.feed});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      color: theme.cardColor,
+      elevation: 1.0,
+      margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        leading: CircleAvatar(
+          backgroundColor: theme.primaryColor.withOpacity(0.15),
+          child: Icon(
+            _iconForFeed(feed.feedUrl),
+            color: theme.primaryColor,
+          ),
+        ),
+        title: Text(
+          feed.displayName,
+          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        trailing: Icon(
+          Icons.chevron_right,
+          color: theme.primaryColor,
+        ),
+        onTap: () {
+          final podcastBloc = Provider.of<PodcastBloc>(context, listen: false);
+          Navigator.push(
+            context,
+            MaterialPageRoute<void>(
+              settings: const RouteSettings(name: 'podcastdetails'),
+              builder: (context) => PodcastDetails(
+                Podcast.fromUrl(url: feed.feedUrl),
+                podcastBloc,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  IconData _iconForFeed(String url) {
+    if (url.contains('bodyscan')) return Icons.accessibility_new;
+    if (url.contains('respiration')) return Icons.air;
+    if (url.contains('etirements')) return Icons.sports_gymnastics;
+    if (url.contains('bienveillance')) return Icons.favorite;
+    if (url.contains('silence')) return Icons.volume_off;
+    if (url.contains('mini-meditations')) return Icons.timer;
+    if (url.contains('causeries')) return Icons.mic;
+    if (url.contains('suites')) return Icons.playlist_play;
+    if (url.contains('meditations-40')) return Icons.self_improvement;
+    if (url.contains('meditations-10')) return Icons.self_improvement;
+    if (url.contains('theme-de-la-semaine')) return Icons.calendar_today;
+    if (url.contains('plusieurs-objets')) return Icons.spa;
+    return Icons.self_improvement;
   }
 }

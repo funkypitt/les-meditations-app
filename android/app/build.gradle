@@ -36,7 +36,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     compileSdk flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
+    ndkVersion "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -59,7 +59,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "uk.me.amugofjava.anytime"
+        applicationId "enpleineconscience.lesmeditations"
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()
@@ -83,13 +83,13 @@ android {
         }
 
         release {
-            signingConfig signingConfigs.release
+            signingConfig keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android.txt')
         }
     }
 
-    namespace 'uk.me.amugofjava.anytime'
+    namespace 'enpleineconscience.lesmeditations'
 
     lint {
         abortOnError false

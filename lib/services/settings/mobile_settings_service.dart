@@ -58,7 +58,7 @@ class MobileSettingsService extends SettingsService {
   }
 
   @override
-  String get theme => _sharedPreferences.getString('theme') ?? 'dark';
+  String get theme => _sharedPreferences.getString('theme') ?? 'system';
 
   @override
   set theme(String mode) {

@@ -14,23 +14,48 @@ import 'package:logging/logging.dart';
 
 // ignore_for_file: avoid_print
 void main() async {
-  List<int> certificateAuthorityBytes = [];
-  WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
+  try {
+    List<int> certificateAuthorityBytes = [];
+    WidgetsFlutterBinding.ensureInitialized();
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
 
-  Logger.root.level = Level.FINE;
+    Logger.root.level = Level.FINE;
 
-  Logger.root.onRecord.listen((record) {
-    print('${record.level.name}: - ${record.time}: ${record.loggerName}: ${record.message}');
-  });
+    Logger.root.onRecord.listen((record) {
+      print('${record.level.name}: - ${record.time}: ${record.loggerName}: ${record.message}');
+    });
 
-  var mobileSettingsService = (await MobileSettingsService.instance())!;
-  certificateAuthorityBytes = await setupCertificateAuthority();
+    // Catch Flutter framework errors and show them on screen
+    FlutterError.onError = (details) {
+      FlutterError.presentError(details);
+      print('FLUTTER ERROR: ${details.exceptionAsString()}');
+      print('STACK: ${details.stack}');
+    };
 
-  runApp(AnytimePodcastApp(
-    mobileSettingsService: mobileSettingsService,
-    certificateAuthorityBytes: certificateAuthorityBytes,
-  ));
+    var mobileSettingsService = (await MobileSettingsService.instance())!;
+    certificateAuthorityBytes = await setupCertificateAuthority();
+
+    runApp(AnytimePodcastApp(
+      mobileSettingsService: mobileSettingsService,
+      certificateAuthorityBytes: certificateAuthorityBytes,
+    ));
+  } catch (e, stack) {
+    print('FATAL ERROR: $e');
+    print('STACK: $stack');
+    runApp(MaterialApp(
+      home: Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'ERREUR AU DEMARRAGE:\n\n$e\n\n$stack',
+              style: const TextStyle(fontSize: 12, color: Colors.red),
+            ),
+          ),
+        ),
+      ),
+    ));
+  }
 }
 
 /// When certificate authorities certificates expire, older devices may not be able to handle

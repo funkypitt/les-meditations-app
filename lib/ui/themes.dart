@@ -5,6 +5,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+/// Meditation theme colors derived from the enpleineconscience.ch logo:
+/// - Figure body: warm taupe/mauve-brown
+/// - Cushion: deep burgundy/maroon
+const _meditationBrown = Color(0xFF7B5B5B);
+const _meditationBrownLight = Color(0xFFC4A8A8);
+const _meditationBurgundy = Color(0xFF5C1010);
+const _meditationBurgundyDark = Color(0xFF3D0808);
+const _warmWhite = Color(0xFFFFF8F5);
+
 final ThemeData _lightTheme = _buildLightTheme();
 final ThemeData _darkTheme = _buildDarkTheme();
 
@@ -13,34 +22,34 @@ ThemeData _buildLightTheme() {
 
   return base.copyWith(
     colorScheme: const ColorScheme.light(
-      primary: Color(0xffff9800),
-      secondary: Color(0xfffb8c00),
+      primary: _meditationBrown,
+      secondary: _meditationBurgundy,
       surface: Color(0xffffffff),
       error: Color(0xffd32f2f),
-      onSurface: Color(0xfffb8c00),
+      onSurface: _meditationBurgundy,
     ),
     bottomAppBarTheme: const BottomAppBarThemeData().copyWith(
-      color: const Color(0xffffffff),
+      color: _warmWhite,
     ),
     cardTheme: const CardThemeData().copyWith(
-      color: const Color(0xffffa900),
-      shadowColor: const Color(0xfff57c00),
+      color: _meditationBrown,
+      shadowColor: _meditationBurgundyDark,
     ),
     brightness: Brightness.light,
-    primaryColor: const Color(0xffff9800),
-    primaryColorLight: const Color(0xffffe0b2),
-    primaryColorDark: const Color(0xfff57c00),
-    canvasColor: const Color(0xffffffff),
-    scaffoldBackgroundColor: const Color(0xffffffff),
+    primaryColor: _meditationBrown,
+    primaryColorLight: _meditationBrownLight,
+    primaryColorDark: _meditationBurgundy,
+    canvasColor: _warmWhite,
+    scaffoldBackgroundColor: _warmWhite,
     cardColor: const Color(0xffffffff),
     dividerColor: const Color(0x1f000000),
     highlightColor: const Color(0x66bcbcbc),
     splashColor: const Color(0x66c8c8c8),
     unselectedWidgetColor: const Color(0x8a000000),
     disabledColor: const Color(0x61000000),
-    secondaryHeaderColor: const Color(0xffffffff),
+    secondaryHeaderColor: _warmWhite,
     dialogBackgroundColor: const Color(0xffffffff),
-    indicatorColor: Colors.blueAccent,
+    indicatorColor: _meditationBurgundy,
     hintColor: const Color(0x8a000000),
     primaryTextTheme: Typography.material2021(platform: TargetPlatform.android).black,
     textTheme: Typography.material2021(
@@ -48,13 +57,13 @@ ThemeData _buildLightTheme() {
     ).black,
     primaryIconTheme: IconThemeData(color: Colors.grey[800]),
     buttonTheme: base.buttonTheme.copyWith(
-      buttonColor: Colors.orange,
+      buttonColor: _meditationBrown,
     ),
     iconTheme: base.iconTheme.copyWith(
-      color: Colors.orange,
+      color: _meditationBrown,
     ),
     sliderTheme: const SliderThemeData().copyWith(
-      valueIndicatorColor: Colors.orange,
+      valueIndicatorColor: _meditationBrown,
       trackHeight: 2.0,
       thumbShape: const RoundSliderThumbShape(
         enabledThumbRadius: 6.0,
@@ -62,11 +71,11 @@ ThemeData _buildLightTheme() {
       ),
     ),
     appBarTheme: base.appBarTheme.copyWith(
-        backgroundColor: Colors.white,
+        backgroundColor: _warmWhite,
         foregroundColor: Colors.black,
         systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(
           systemNavigationBarIconBrightness: Brightness.dark,
-          systemNavigationBarColor: Colors.white,
+          systemNavigationBarColor: _warmWhite,
           statusBarIconBrightness: Brightness.dark,
         )),
     snackBarTheme: base.snackBarTheme.copyWith(
@@ -84,7 +93,7 @@ ThemeData _buildDarkTheme() {
   return base.copyWith(
     colorScheme: const ColorScheme.dark(
       primary: Color(0xffffffff),
-      secondary: Color(0xfffb8c00),
+      secondary: _meditationBrownLight,
       surface: Color(0xff222222),
       error: Color(0xffd32f2f),
       onSurface: Color(0xffffffff),
@@ -98,8 +107,8 @@ ThemeData _buildDarkTheme() {
     ),
     brightness: Brightness.dark,
     primaryColor: const Color(0xffffffff),
-    primaryColorLight: const Color(0xffffe0b2),
-    primaryColorDark: const Color(0xfff57c00),
+    primaryColorLight: _meditationBrownLight,
+    primaryColorDark: _meditationBurgundy,
     canvasColor: const Color(0xff000000),
     scaffoldBackgroundColor: const Color(0xff000000),
     cardColor: const Color(0xff0F0F0F),
@@ -110,7 +119,7 @@ ThemeData _buildDarkTheme() {
     disabledColor: const Color(0x77ffffff),
     secondaryHeaderColor: const Color(0xff222222),
     dialogBackgroundColor: const Color(0xff222222),
-    indicatorColor: Colors.orange,
+    indicatorColor: _meditationBrownLight,
     hintColor: const Color(0x80ffffff),
     primaryTextTheme: Typography.material2021(platform: TargetPlatform.android).white,
     textTheme: Typography.material2021(platform: TargetPlatform.android).white,
@@ -140,7 +149,7 @@ ThemeData _buildDarkTheme() {
           statusBarIconBrightness: Brightness.light,
         )),
     snackBarTheme: base.snackBarTheme.copyWith(
-      actionTextColor: Colors.orange,
+      actionTextColor: _meditationBrownLight,
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(

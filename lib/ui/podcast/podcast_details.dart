@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:anytime/bloc/podcast/podcast_bloc.dart';
 import 'package:anytime/bloc/settings/settings_bloc.dart';
+import 'package:anytime/core/meditation_catalog.dart';
 import 'package:anytime/entities/episode.dart';
 import 'package:anytime/entities/feed.dart';
 import 'package:anytime/entities/podcast.dart';
@@ -70,6 +71,10 @@ class _PodcastDetailsState extends State<PodcastDetails> {
       errorSilently: true,
     ));
 
+    // Force sort order from catalog after the podcast is loaded from DB/network.
+    // Oldest first for all feeds except les-causeries (newest first).
+    _forceCatalogSortOrder();
+
     // We only want to display the podcast title when the toolbar is in a
     // collapsed state. Add a listener and set toollbarCollapsed variable
     // as required. The text display property is then based on this boolean.
@@ -123,6 +128,30 @@ class _PodcastDetailsState extends State<PodcastDetails> {
       statusBarColor: Theme.of(context).appBarTheme.backgroundColor!.withValues(alpha: toolbarCollapsed ? 1.0 : 0.5),
     );
     super.didChangeDependencies();
+  }
+
+  /// Listens for the podcast to be loaded, then forces the sort order
+  /// based on the meditation catalog (oldest first, except les-causeries).
+  void _forceCatalogSortOrder() {
+    final catalogFeed = MeditationCatalog.feeds.cast<MeditationFeed?>().firstWhere(
+      (f) => widget.podcast.url == f!.feedUrl,
+      orElse: () => null,
+    );
+
+    if (catalogFeed == null) return;
+
+    final desiredSort = catalogFeed.oldestFirst
+        ? PodcastEvent.episodeSortEarliest
+        : PodcastEvent.episodeSortLatest;
+
+    // Wait for the podcast to finish loading, then apply the sort
+    late final StreamSubscription sub;
+    sub = widget._podcastBloc.details.listen((state) {
+      if (state is BlocPopulatedState<Podcast>) {
+        widget._podcastBloc.podcastEvent(desiredSort);
+        sub.cancel();
+      }
+    });
   }
 
   @override
@@ -515,8 +544,6 @@ class _PodcastTitleState extends State<PodcastTitle> with SingleTickerProviderSt
                   ),
                   visualDensity: VisualDensity.compact,
                 ),
-                SortButton(widget.podcast),
-                FilterButton(widget.podcast),
                 if (settings.showFunding) FundingMenu(widget.podcast.funding)
               ],
             ),
@@ -689,89 +716,8 @@ class FollowButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bloc = Provider.of<PodcastBloc>(context);
-
-    return StreamBuilder<BlocState<Podcast>>(
-        stream: bloc.details,
-        builder: (context, snapshot) {
-          var ready = false;
-          var subscribed = false;
-
-          // To prevent jumpy UI, we always need to display the follow/unfollow button.
-          // Display a disabled follow button until the full state it loaded.
-          if (snapshot.hasData) {
-            final state = snapshot.data;
-
-            if (state is BlocPopulatedState<Podcast>) {
-              ready = true;
-              subscribed = state.results!.subscribed;
-            }
-          }
-          return Semantics(
-            liveRegion: true,
-            child: subscribed
-                ? OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.fromLTRB(10.0, 4.0, 10.0, 4.0),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-                    ),
-                    icon: const Icon(
-                      Icons.delete_outline,
-                    ),
-                    label: Text(L.of(context)!.unsubscribe_label),
-                    onPressed: ready
-                        ? () {
-                            showPlatformDialog<void>(
-                              context: context,
-                              useRootNavigator: false,
-                              builder: (_) => BasicDialogAlert(
-                                title: Text(L.of(context)!.unsubscribe_label),
-                                content: Text(L.of(context)!.unsubscribe_message),
-                                actions: <Widget>[
-                                  BasicDialogAction(
-                                    title: ActionText(
-                                      L.of(context)!.cancel_button_label,
-                                    ),
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                    },
-                                  ),
-                                  BasicDialogAction(
-                                    title: ActionText(
-                                      L.of(context)!.unsubscribe_button_label,
-                                    ),
-                                    iosIsDefaultAction: true,
-                                    iosIsDestructiveAction: true,
-                                    onPressed: () {
-                                      bloc.podcastEvent(PodcastEvent.unsubscribe);
-
-                                      Navigator.pop(context);
-                                      Navigator.pop(context);
-                                    },
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
-                        : null,
-                  )
-                : OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.fromLTRB(10.0, 4.0, 10.0, 4.0),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-                    ),
-                    icon: const Icon(
-                      Icons.add,
-                    ),
-                    label: Text(L.of(context)!.subscribe_label),
-                    onPressed: ready
-                        ? () {
-                            bloc.podcastEvent(PodcastEvent.subscribe);
-                          }
-                        : null,
-                  ),
-          );
-        });
+    // In the meditation app, follow/unfollow is not needed (fixed catalog).
+    return const SizedBox.shrink();
   }
 }
 

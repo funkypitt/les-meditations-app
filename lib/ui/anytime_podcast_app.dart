@@ -9,13 +9,13 @@ import 'package:anytime/api/podcast/podcast_api.dart';
 import 'package:anytime/bloc/discovery/discovery_bloc.dart';
 import 'package:anytime/bloc/podcast/audio_bloc.dart';
 import 'package:anytime/bloc/podcast/episode_bloc.dart';
-import 'package:anytime/bloc/podcast/opml_bloc.dart';
 import 'package:anytime/bloc/podcast/podcast_bloc.dart';
 import 'package:anytime/bloc/podcast/queue_bloc.dart';
 import 'package:anytime/bloc/search/search_bloc.dart';
 import 'package:anytime/bloc/settings/settings_bloc.dart';
 import 'package:anytime/bloc/ui/pager_bloc.dart';
 import 'package:anytime/core/environment.dart';
+import 'package:anytime/core/meditation_catalog.dart';
 import 'package:anytime/entities/feed.dart';
 import 'package:anytime/entities/podcast.dart';
 import 'package:anytime/l10n/L.dart';
@@ -29,41 +29,29 @@ import 'package:anytime/services/download/mobile_download_manager.dart';
 import 'package:anytime/services/download/mobile_download_service.dart';
 import 'package:anytime/services/notifications/mobile_notification_service.dart';
 import 'package:anytime/services/notifications/notification_service.dart';
-import 'package:anytime/services/podcast/mobile_opml_service.dart';
 import 'package:anytime/services/podcast/mobile_podcast_service.dart';
-import 'package:anytime/services/podcast/opml_service.dart';
 import 'package:anytime/services/podcast/podcast_service.dart';
 import 'package:anytime/services/settings/mobile_settings_service.dart';
 import 'package:anytime/state/library_state.dart';
 import 'package:anytime/ui/library/discovery.dart';
 import 'package:anytime/ui/library/downloads.dart';
-import 'package:anytime/ui/library/library.dart';
 import 'package:anytime/ui/podcast/mini_player.dart';
 import 'package:anytime/ui/podcast/podcast_details.dart';
 import 'package:anytime/ui/podcast/up_next_view.dart';
-import 'package:anytime/ui/search/search.dart';
 import 'package:anytime/ui/settings/settings.dart';
 import 'package:anytime/ui/themes.dart';
-import 'package:anytime/ui/widgets/action_text.dart';
 import 'package:anytime/ui/widgets/layout_selector.dart';
-import 'package:anytime/ui/widgets/search_slide_route.dart';
-import 'package:app_links/app_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart' show SchedulerBinding;
 import 'package:flutter/services.dart';
-import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../services/settings/settings_service.dart';
 
-var theme = Themes.lightTheme().themeData;
-
-/// Anytime is a Podcast player. You can search and subscribe to podcasts,
-/// download and stream episodes and view the latest podcast charts.
+/// En Pleine Conscience — Meditation app built on Anytime Podcast Player.
 // ignore: must_be_immutable
 class AnytimePodcastApp extends StatefulWidget {
   final Repository repository;
@@ -71,7 +59,6 @@ class AnytimePodcastApp extends StatefulWidget {
   late DownloadService downloadService;
   late NotificationService notificationService;
   late AudioPlayerService audioPlayerService;
-  late OPMLService opmlService;
   PodcastService? podcastService;
   SettingsBloc? settingsBloc;
   MobileSettingsService mobileSettingsService;
@@ -111,11 +98,6 @@ class AnytimePodcastApp extends StatefulWidget {
       notificationService: notificationService,
     );
 
-    opmlService = MobileOPMLService(
-      podcastService: podcastService!,
-      repository: repository,
-    );
-
     podcastApi.addClientAuthorityBytes(certificateAuthorityBytes);
   }
 
@@ -124,18 +106,16 @@ class AnytimePodcastApp extends StatefulWidget {
 }
 
 class AnytimePodcastAppState extends State<AnytimePodcastApp> {
-  ThemeData? theme;
+  ThemeData? theme = Themes.lightTheme().themeData;
 
   @override
   void initState() {
     super.initState();
 
-    /// Listen to theme change events from settings.
     widget.settingsBloc!.settings.listen((event) {
       setState(() {
         var newTheme = Themes.darkTheme().themeData;
 
-        /// As we add new themes, we will move this selection into its own theme module.
         switch (event.theme) {
           case 'system':
             var brightness = SchedulerBinding.instance.platformDispatcher.platformBrightness;
@@ -149,7 +129,6 @@ class AnytimePodcastAppState extends State<AnytimePodcastApp> {
             break;
         }
 
-        /// Only update the theme if it has changed.
         if (newTheme != theme) {
           theme = newTheme;
         }
@@ -199,10 +178,6 @@ class AnytimePodcastAppState extends State<AnytimePodcastApp> {
           create: (_) => widget.settingsBloc,
           dispose: (_, value) => value!.dispose(),
         ),
-        Provider<OPMLBloc>(
-          create: (_) => OPMLBloc(opmlService: widget.opmlService),
-          dispose: (_, value) => value.dispose(),
-        ),
         Provider<QueueBloc>(
           create: (_) => QueueBloc(
             audioPlayerService: widget.audioPlayerService,
@@ -214,7 +189,7 @@ class AnytimePodcastAppState extends State<AnytimePodcastApp> {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         showSemanticsDebugger: false,
-        title: 'Anytime Podcast Player',
+        title: 'les méditations',
         navigatorObservers: [NavigationRouteObserver()],
         localizationsDelegates: const <LocalizationsDelegate<Object>>[
           AnytimeLocalisationsDelegate(),
@@ -224,6 +199,7 @@ class AnytimePodcastAppState extends State<AnytimePodcastApp> {
         ],
         supportedLocales: const [
           Locale('en', ''),
+          Locale('fr', ''),
           Locale('es', ''),
           Locale('de', ''),
           Locale('gl', ''),
@@ -235,9 +211,7 @@ class AnytimePodcastAppState extends State<AnytimePodcastApp> {
           Locale('zh_Hans', ''),
         ],
         theme: theme,
-        // Uncomment builder below to enable accessibility checker tool.
-        // builder: (context, child) => AccessibilityTools(child: child),
-        home: const AnytimeHomePage(title: 'Anytime Podcast Player'),
+        home: const AnytimeHomePage(title: 'enpleineconscience.ch'),
       ),
     );
   }
@@ -258,12 +232,10 @@ class AnytimeHomePage extends StatefulWidget {
 }
 
 class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingObserver {
-  StreamSubscription<Uri>? deepLinkSubscription;
-
   final log = Logger('_AnytimeHomePageState');
-  bool handledInitialLink = false;
   bool libraryRefreshing = false;
   Widget? library;
+  bool _autoSubscribeTriggered = false;
 
   @override
   void initState() {
@@ -274,69 +246,54 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
 
     WidgetsBinding.instance.addObserver(this);
 
-    /// TODO: These should auto register and trigger.
     audioBloc.transitionLifecycleState(LifecycleState.resume);
     podcastBloc.transitionLifecycleState(LifecycleState.resume);
 
-    /// Handle deep links
-    _setupLinkListener();
-
-    /// Handle library updates and enable/disable the manual refresh menu item as appropriate.
     Provider.of<PodcastBloc>(context, listen: false).libraryListener.listen((d) {
       setState(() {
         libraryRefreshing = (d is LibraryRefreshingState);
       });
     });
+
+    // Auto-subscribe to all meditation catalog feeds on first launch
+    _autoSubscribeToCatalog();
   }
 
-  /// We listen to external links from outside the app. For example, someone may navigate
-  /// to a web page that supports 'Open with Anytime'.
-  void _setupLinkListener() async {
-    final appLinks = AppLinks(); // AppLinks is singleton
+  /// On first launch (no subscriptions), automatically subscribe to all
+  /// meditation feeds from the catalog and set appropriate sort order.
+  Future<void> _autoSubscribeToCatalog() async {
+    if (_autoSubscribeTriggered) return;
+    _autoSubscribeTriggered = true;
 
-    // Subscribe to all events (initial link and further)
-    deepLinkSubscription = appLinks.uriLinkStream.listen((uri) {
-      // Do something (navigation, ...)
-      _handleLinkEvent(uri);
-    });
-  }
+    final podcastService =
+        Provider.of<PodcastBloc>(context, listen: false).podcastService;
 
-  /// This method handles the actual link supplied from [uni_links], either
-  /// at app startup or during running.
-  void _handleLinkEvent(Uri uri) async {
-    if ((uri.scheme == 'anytime-subscribe' || uri.scheme == 'https') &&
-        (uri.query.startsWith('uri=') || uri.query.startsWith('url='))) {
-      var path = uri.query.substring(4);
-      var loadPodcastBloc = Provider.of<PodcastBloc>(context, listen: false);
-      var routeName = NavigationRouteObserver().top!.settings.name;
+    final subs = await podcastService.subscriptions();
+    if (subs.isNotEmpty) return;
 
-      /// If we are currently on the podcast details page, we can simply request (via
-      /// the BLoC) that we load this new URL. If not, we pop the stack until we are
-      /// back at root and then load the podcast details page.
-      if (routeName != null && routeName == 'podcastdetails') {
-        loadPodcastBloc.load(Feed(
-          podcast: Podcast.fromUrl(url: path),
-          backgroundFetch: false,
-          errorSilently: false,
-        ));
-      } else {
-        /// Pop back to route.
-        Navigator.of(context).popUntil((route) {
-          var currentRouteName = NavigationRouteObserver().top!.settings.name;
+    log.info('First launch detected — subscribing to meditation catalog');
 
-          return currentRouteName == null || currentRouteName == '' || currentRouteName == '/';
-        });
+    for (final feed in MeditationCatalog.feeds) {
+      try {
+        final podcast = Podcast.fromUrl(url: feed.feedUrl);
+        final loaded = await podcastService.loadPodcast(podcast: podcast);
 
-        /// Once we have reached the root route, push podcast details.
-        await Navigator.push(
-          context,
-          MaterialPageRoute<void>(
-              fullscreenDialog: true,
-              settings: const RouteSettings(name: 'podcastdetails'),
-              builder: (context) => PodcastDetails(Podcast.fromUrl(url: path), loadPodcastBloc)),
-        );
+        if (loaded != null) {
+          // Set sort order: oldest first for all except les-causeries
+          loaded.sort = feed.oldestFirst
+              ? PodcastEpisodeSort.earliestFirst
+              : PodcastEpisodeSort.latestFirst;
+          await podcastService.subscribe(loaded);
+          log.fine('Subscribed to: ${loaded.title}');
+        }
+      } catch (e) {
+        log.warning('Failed to subscribe to ${feed.displayName}: $e');
       }
     }
+
+    // Reload subscriptions in the UI
+    final podcastBloc = Provider.of<PodcastBloc>(context, listen: false);
+    podcastBloc.podcastEvent(PodcastEvent.reloadSubscriptions);
   }
 
   @override
@@ -346,8 +303,6 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
 
     audioBloc.transitionLifecycleState(LifecycleState.detach);
     podcastBloc.transitionLifecycleState(LifecycleState.detach);
-
-    deepLinkSubscription?.cancel();
 
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -379,13 +334,14 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
 
   @override
   Widget build(BuildContext context) {
+    try {
     final theme = Theme.of(context);
     final pager = Provider.of<PagerBloc>(context);
     final searchBloc = Provider.of<EpisodeBloc>(context);
     final backgroundColour = Theme.of(context).scaffoldBackgroundColor;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: theme.appBarTheme.systemOverlayStyle!,
+      value: theme.appBarTheme.systemOverlayStyle ?? SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: backgroundColour,
         body: Column(
@@ -397,49 +353,17 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
                     visible: widget.topBarVisible,
                     sliver: SliverAppBar(
                       title: ExcludeSemantics(
-                        child: TitleWidget(),
+                        child: Image.asset(
+                          'assets/images/meditation-logo.png',
+                          height: 42,
+                        ),
                       ),
+                      centerTitle: true,
                       backgroundColor: backgroundColour,
                       floating: false,
                       pinned: true,
                       snap: false,
                       actions: <Widget>[
-                        IconButton(
-                          icon: Icon(
-                            Icons.search,
-                            semanticLabel: L.of(context)!.search_for_podcasts_hint,
-                          ),
-                          onPressed: () async {
-                            await Navigator.push(
-                              context,
-                              defaultTargetPlatform == TargetPlatform.iOS
-                                  ? MaterialPageRoute<void>(
-                                      fullscreenDialog: false,
-                                      settings: const RouteSettings(name: 'search'),
-                                      builder: (context) => const Search())
-                                  : SlideRightRoute(
-                                      widget: const Search(),
-                                      settings: const RouteSettings(name: 'search'),
-                                    ),
-                            );
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            Icons.featured_play_list_outlined,
-                            semanticLabel: L.of(context)!.open_up_next_hint,
-                          ),
-                          onPressed: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute<void>(
-                                fullscreenDialog: false,
-                                settings: const RouteSettings(name: 'queue'),
-                                builder: (context) => const UpNextPage(),
-                              ),
-                            );
-                          },
-                        ),
                         PopupMenuButton<String>(
                           onSelected: _menuSelect,
                           icon: const Icon(
@@ -447,66 +371,6 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
                           ),
                           itemBuilder: (BuildContext context) {
                             return <PopupMenuEntry<String>>[
-                              if (feedbackUrl.isNotEmpty)
-                                PopupMenuItem<String>(
-                                  textStyle: theme.textTheme.titleMedium,
-                                  value: 'feedback',
-                                  child: Focus(
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        const Padding(
-                                          padding: EdgeInsets.only(right: 8.0),
-                                          child: Icon(Icons.feedback_outlined, size: 18.0),
-                                        ),
-                                        Text(L.of(context)!.feedback_menu_item_label),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              PopupMenuItem<String>(
-                                textStyle: theme.textTheme.titleMedium,
-                                value: 'layout',
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    const Padding(
-                                      padding: EdgeInsets.only(right: 8.0),
-                                      child: Icon(Icons.dashboard, size: 18.0),
-                                    ),
-                                    Text(L.of(context)!.layout_label),
-                                  ],
-                                ),
-                              ),
-                              PopupMenuItem<String>(
-                                textStyle: theme.textTheme.titleMedium,
-                                value: 'rss',
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    const Padding(
-                                      padding: EdgeInsets.only(right: 8.0),
-                                      child: Icon(Icons.rss_feed, size: 18.0),
-                                    ),
-                                    Text(L.of(context)!.add_rss_feed_option),
-                                  ],
-                                ),
-                              ),
-                              PopupMenuItem<String>(
-                                textStyle: theme.textTheme.titleMedium,
-                                value: 'library',
-                                enabled: !libraryRefreshing,
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    const Padding(
-                                      padding: EdgeInsets.only(right: 8.0),
-                                      child: Icon(Icons.refresh, size: 18.0),
-                                    ),
-                                    Text(L.of(context)!.update_library_option),
-                                  ],
-                                ),
-                              ),
                               PopupMenuItem<String>(
                                 textStyle: theme.textTheme.titleMedium,
                                 value: 'settings',
@@ -564,77 +428,63 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
                 selectedFontSize: 11.0,
                 unselectedFontSize: 11.0,
                 unselectedItemColor:
-                    HSLColor.fromColor(theme.bottomAppBarTheme.color!).withLightness(0.8).toColor(),
+                    HSLColor.fromColor(theme.bottomAppBarTheme.color ?? const Color(0xFFFFF8F5)).withLightness(0.8).toColor(),
                 currentIndex: index,
                 onTap: pager.changePage,
                 items: <BottomNavigationBarItem>[
                   BottomNavigationBarItem(
-                    icon: index == 0 ? const Icon(Icons.library_music) : const Icon(Icons.library_music_outlined),
-                    label: L.of(context)!.library,
-                  ),
-                  // To be fleshed out later.
-                  // BottomNavigationBarItem(
-                  //   icon: index == 0 ? Icon(Icons.article_rounded) : Icon(Icons.article_outlined),
-                  //   label: 'Episodes',
-                  // ),
-                  BottomNavigationBarItem(
-                    icon: index == 1 ? const Icon(Icons.explore) : const Icon(Icons.explore_outlined),
-                    label: L.of(context)!.discover,
+                    icon: index == 0 ? const Icon(Icons.self_improvement) : const Icon(Icons.self_improvement_outlined),
+                    label: 'Méditations',
                   ),
                   BottomNavigationBarItem(
-                    icon: index == 2 ? const Icon(Icons.download) : const Icon(Icons.download_outlined),
-                    label: L.of(context)!.downloads,
+                    icon: index == 1 ? const Icon(Icons.download) : const Icon(Icons.download_outlined),
+                    label: L.of(context)?.downloads ?? 'Téléchargements',
                   ),
                 ],
               );
             }),
       ),
     );
+    } catch (e, stack) {
+      return Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'BUILD ERROR:\n\n$e\n\n$stack',
+              style: const TextStyle(fontSize: 11, color: Colors.red),
+            ),
+          ),
+        ),
+      );
+    }
   }
 
   Widget _fragment(int? index, EpisodeBloc searchBloc) {
     if (index == 0) {
-      return const Library();
-    } else if (index == 1) {
-      return const Discovery(
-        categories: true,
-      );
+      return const Discovery();
     } else {
       return const Downloads();
     }
   }
 
   void _menuSelect(String choice) async {
-    var textFieldController = TextEditingController();
     var podcastBloc = Provider.of<PodcastBloc>(context, listen: false);
     final theme = Theme.of(context);
-    var url = '';
 
     switch (choice) {
       case 'about':
         showAboutDialog(
             context: context,
-            applicationName: 'Anytime Podcast Player',
+            applicationName: 'les méditations',
             applicationVersion: 'v${Environment.projectVersion}',
             applicationIcon: Image.asset(
-              'assets/images/anytime-logo-s.png',
+              'assets/images/meditation-logo.png',
               width: 52.0,
               height: 52.0,
             ),
             children: <Widget>[
-              const Text('\u00a9 2020 Ben Hills'),
-              GestureDetector(
-                onTap: () {
-                  _launchEmail();
-                },
-                child: Text(
-                  'hello@anytimeplayer.app',
-                  style: TextStyle(
-                    decoration: TextDecoration.underline,
-                    color: theme.indicatorColor,
-                  ),
-                ),
-              ),
+              const Text('enpleineconscience.ch — Méditations guidées'),
             ]);
         break;
       case 'settings':
@@ -646,9 +496,6 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
             builder: (context) => const Settings(),
           ),
         );
-        break;
-      case 'feedback':
-        _launchFeedback();
         break;
       case 'layout':
         await showModalBottomSheet<void>(
@@ -664,55 +511,6 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
           builder: (context) => const LayoutSelectorWidget(),
         );
         break;
-      case 'rss':
-        await showPlatformDialog<void>(
-          context: context,
-          useRootNavigator: false,
-          builder: (_) => BasicDialogAlert(
-            title: Text(L.of(context)!.add_rss_feed_option),
-            content: Material(
-              color: Colors.transparent,
-              child: TextField(
-                onChanged: (value) {
-                  setState(() {
-                    url = value;
-                  });
-                },
-                controller: textFieldController,
-                decoration: const InputDecoration(hintText: 'https://'),
-              ),
-            ),
-            actions: <Widget>[
-              BasicDialogAction(
-                title: ActionText(
-                  L.of(context)!.cancel_button_label,
-                ),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ),
-              BasicDialogAction(
-                title: ActionText(
-                  L.of(context)!.ok_button_label,
-                ),
-                iosIsDefaultAction: true,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                        settings: const RouteSettings(name: 'podcastdetails'),
-                        builder: (context) => PodcastDetails(Podcast.fromUrl(url: url), podcastBloc)),
-                  ).then((value) {
-                    if (mounted) {
-                      Navigator.of(context).pop();
-                    }
-                  });
-                },
-              ),
-            ],
-          ),
-        );
-        break;
       case 'library':
         _updateLibrary();
         break;
@@ -721,71 +519,33 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
 
   void _updateLibrary() async {
     var podcastBloc = Provider.of<PodcastBloc>(context, listen: false);
-
     podcastBloc.podcastEvent(PodcastEvent.refreshSubscriptions);
-  }
-
-  void _launchFeedback() async {
-    final uri = Uri.parse(feedbackUrl);
-
-    if (!await launchUrl(
-      uri,
-      mode: LaunchMode.externalApplication,
-    )) {
-      throw Exception('Could not launch $uri');
-    }
-  }
-
-  void _launchEmail() async {
-    final uri = Uri.parse('mailto:hello@anytimeplayer.app');
-
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
-      throw 'Could not launch $uri';
-    }
   }
 }
 
 class TitleWidget extends StatelessWidget {
-  final TextStyle _titleTheme1 = theme.textTheme.bodyMedium!.copyWith(
-    color: const Color.fromARGB(255, 255, 153, 0),
-    fontWeight: FontWeight.bold,
-    fontFamily: 'MontserratRegular',
-    fontSize: 18,
-  );
-
-  final TextStyle _titleTheme2Light = theme.textTheme.bodyMedium!.copyWith(
-    color: Colors.black,
-    fontWeight: FontWeight.bold,
-    fontFamily: 'MontserratRegular',
-    fontSize: 18,
-  );
-
-  final TextStyle _titleTheme2Dark = theme.textTheme.bodyMedium!.copyWith(
-    color: Colors.white,
-    fontWeight: FontWeight.bold,
-    fontFamily: 'MontserratRegular',
-    fontSize: 18,
-  );
-
-  TitleWidget({
-    super.key,
-  });
+  const TitleWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    const baseStyle = TextStyle(
+      fontWeight: FontWeight.bold,
+      fontFamily: 'MontserratRegular',
+      fontSize: 18,
+    );
+
     return Padding(
       padding: const EdgeInsets.only(left: 2.0),
       child: Row(
         children: <Widget>[
           Text(
-            'Anytime ',
-            style: _titleTheme1,
+            'enpleineconscience',
+            style: baseStyle.copyWith(color: const Color(0xFF7B5B5B)),
           ),
           Text(
-            'Player',
-            style: Theme.of(context).brightness == Brightness.light ? _titleTheme2Light : _titleTheme2Dark,
+            '.ch',
+            style: baseStyle.copyWith(color: isDark ? Colors.white : Colors.black),
           ),
         ],
       ),
