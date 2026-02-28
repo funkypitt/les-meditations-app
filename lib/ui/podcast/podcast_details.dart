@@ -525,7 +525,18 @@ class _PodcastTitleState extends State<PodcastTitle> with SingleTickerProviderSt
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 FollowButton(widget.podcast),
-                PodcastContextMenu(widget.podcast),
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () {
+                    final bloc = Provider.of<PodcastBloc>(context, listen: false);
+                    bloc.load(Feed(
+                      podcast: widget.podcast,
+                      backgroundFetch: false,
+                      errorSilently: false,
+                    ));
+                  },
+                ),
                 IconButton(
                   onPressed: () {
                     setState(() {
