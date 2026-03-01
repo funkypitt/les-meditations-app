@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "anytime-logo-s.png",
+      "filename" : "launch-meditation-1x.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "anytime-logo-s 1.png",
+      "filename" : "launch-meditation-2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "anytime-logo-s 2.png",
+      "filename" : "launch-meditation-3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

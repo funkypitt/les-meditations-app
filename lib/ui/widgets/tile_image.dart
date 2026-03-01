@@ -46,13 +46,13 @@ class TileImage extends StatelessWidget {
           ? placeholderBuilder.builder()(context)
           : const Image(
               fit: BoxFit.contain,
-              image: AssetImage('assets/images/anytime-placeholder-logo.png'),
+              image: AssetImage('assets/images/meditation-placeholder-logo.png'),
             ),
       errorPlaceholder: placeholderBuilder != null
           ? placeholderBuilder.errorBuilder()(context)
           : const Image(
               fit: BoxFit.contain,
-              image: AssetImage('assets/images/anytime-placeholder-logo.png'),
+              image: AssetImage('assets/images/meditation-placeholder-logo.png'),
             ),
     );
   }

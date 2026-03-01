@@ -70,15 +70,15 @@ flutter_icons:
   remove_alpha_ios: true
   android: true
   ios: true
+  adaptive_icon_background: "#FFF8F5"
+  adaptive_icon_foreground: "assets/images/meditation-logo.png"
 
 flutter:
   uses-material-design: true
 
   assets:
     - assets/images/meditation-logo.png
-    - assets/images/anytime-logo.png
-    - assets/images/anytime-logo-s.png
-    - assets/images/anytime-placeholder-logo.png
+    - assets/images/meditation-placeholder-logo.png
 
     # Certificate authorities
     - assets/ca/lets-encrypt-r3.pem

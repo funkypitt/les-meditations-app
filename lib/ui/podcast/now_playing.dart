@@ -228,7 +228,7 @@ class NowPlayingEpisode extends StatelessWidget {
                               : DelayedCircularProgressIndicator(),
                           errorPlaceholder: placeholderBuilder != null
                               ? placeholderBuilder.errorBuilder()(context)
-                              : const Image(image: AssetImage('assets/images/anytime-placeholder-logo.png')),
+                              : const Image(image: AssetImage('assets/images/meditation-placeholder-logo.png')),
                         ),
                       ),
                     ),
@@ -263,7 +263,7 @@ class NowPlayingEpisode extends StatelessWidget {
                               : DelayedCircularProgressIndicator(),
                           errorPlaceholder: placeholderBuilder != null
                               ? placeholderBuilder.errorBuilder()(context)
-                              : const Image(image: AssetImage('assets/images/anytime-placeholder-logo.png')),
+                              : const Image(image: AssetImage('assets/images/meditation-placeholder-logo.png')),
                         ),
                       ),
                     ),

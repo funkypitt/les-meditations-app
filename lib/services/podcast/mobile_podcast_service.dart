@@ -463,11 +463,10 @@ class MobilePodcastService extends PodcastService {
       await repository.deleteEpisodes(expired);
 
       pc = await repository.savePodcast(pc);
-
-      // Phew! Now, after all that, we have have a podcast filter in place. All episodes will have
-      // been saved, but we might not want to display them all. Let's filter.
-      pc.episodes = _sortAndFilterEpisodes(pc);
     }
+
+    // Always apply sort and filter (sort preference comes from the follow record if subscribed).
+    pc.episodes = _sortAndFilterEpisodes(pc);
 
     // All done, now cache the podcast in case we need to fetch this again shortly.
     _cache.store(pc);

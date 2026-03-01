@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:anytime/bloc/podcast/podcast_bloc.dart';
 import 'package:anytime/bloc/settings/settings_bloc.dart';
-import 'package:anytime/core/meditation_catalog.dart';
 import 'package:anytime/entities/episode.dart';
 import 'package:anytime/entities/feed.dart';
 import 'package:anytime/entities/podcast.dart';
@@ -14,9 +13,7 @@ import 'package:anytime/l10n/L.dart';
 import 'package:anytime/state/bloc_state.dart';
 import 'package:anytime/ui/podcast/funding_menu.dart';
 import 'package:anytime/ui/podcast/playback_error_listener.dart';
-import 'package:anytime/ui/podcast/podcast_context_menu.dart';
 import 'package:anytime/ui/podcast/podcast_episode_list.dart';
-import 'package:anytime/ui/widgets/action_text.dart';
 import 'package:anytime/ui/widgets/delayed_progress_indicator.dart';
 import 'package:anytime/ui/widgets/episode_filter_selector.dart';
 import 'package:anytime/ui/widgets/episode_sort_selector.dart';
@@ -27,7 +24,6 @@ import 'package:anytime/ui/widgets/podcast_html.dart';
 import 'package:anytime/ui/widgets/podcast_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
@@ -70,10 +66,6 @@ class _PodcastDetailsState extends State<PodcastDetails> {
       backgroundFetch: true,
       errorSilently: true,
     ));
-
-    // Force sort order from catalog after the podcast is loaded from DB/network.
-    // Oldest first for all feeds except les-causeries (newest first).
-    _forceCatalogSortOrder();
 
     // We only want to display the podcast title when the toolbar is in a
     // collapsed state. Add a listener and set toollbarCollapsed variable
@@ -128,30 +120,6 @@ class _PodcastDetailsState extends State<PodcastDetails> {
       statusBarColor: Theme.of(context).appBarTheme.backgroundColor!.withValues(alpha: toolbarCollapsed ? 1.0 : 0.5),
     );
     super.didChangeDependencies();
-  }
-
-  /// Listens for the podcast to be loaded, then forces the sort order
-  /// based on the meditation catalog (oldest first, except les-causeries).
-  void _forceCatalogSortOrder() {
-    final catalogFeed = MeditationCatalog.feeds.cast<MeditationFeed?>().firstWhere(
-      (f) => widget.podcast.url == f!.feedUrl,
-      orElse: () => null,
-    );
-
-    if (catalogFeed == null) return;
-
-    final desiredSort = catalogFeed.oldestFirst
-        ? PodcastEvent.episodeSortEarliest
-        : PodcastEvent.episodeSortLatest;
-
-    // Wait for the podcast to finish loading, then apply the sort
-    late final StreamSubscription sub;
-    sub = widget._podcastBloc.details.listen((state) {
-      if (state is BlocPopulatedState<Podcast>) {
-        widget._podcastBloc.podcastEvent(desiredSort);
-        sub.cancel();
-      }
-    });
   }
 
   @override
@@ -398,7 +366,7 @@ class PodcastHeaderImage extends StatelessWidget {
           placeholderBuilder != null ? placeholderBuilder?.builder()(context) : DelayedCircularProgressIndicator(),
       errorPlaceholder: placeholderBuilder != null
           ? placeholderBuilder?.errorBuilder()(context)
-          : const Image(image: AssetImage('assets/images/anytime-placeholder-logo.png')),
+          : const Image(image: AssetImage('assets/images/meditation-placeholder-logo.png')),
     );
   }
 }
@@ -532,8 +500,7 @@ class _PodcastTitleState extends State<PodcastTitle> with SingleTickerProviderSt
                     final bloc = Provider.of<PodcastBloc>(context, listen: false);
                     bloc.load(Feed(
                       podcast: widget.podcast,
-                      backgroundFetch: false,
-                      errorSilently: false,
+                      forceFetch: true,
                     ));
                   },
                 ),

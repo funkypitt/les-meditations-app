@@ -43,15 +43,6 @@ class _SettingsState extends State<Settings> {
               SettingsDividerLabel(label: L.of(context)!.settings_episodes_divider_label),
               MergeSemantics(
                 child: ListTile(
-                  title: Text(L.of(context)!.settings_mark_deleted_played_label),
-                  trailing: Switch.adaptive(
-                    value: snapshot.data!.markDeletedEpisodesAsPlayed,
-                    onChanged: (value) => setState(() => settingsBloc.markDeletedAsPlayed(value)),
-                  ),
-                ),
-              ),
-              MergeSemantics(
-                child: ListTile(
                     shape: const RoundedRectangleBorder(side: BorderSide.none),
                     title: Text(L.of(context)!.settings_delete_played_label),
                     trailing: Switch.adaptive(
@@ -87,16 +78,6 @@ class _SettingsState extends State<Settings> {
                   ),
                 ),
               ),
-              MergeSemantics(
-                child: ListTile(
-                  title: Text(L.of(context)!.settings_continuous_play_option),
-                  subtitle: Text(L.of(context)!.settings_continuous_play_subtitle),
-                  trailing: Switch.adaptive(
-                    value: snapshot.data!.autoPlay,
-                    onChanged: (value) => setState(() => settingsBloc.autoPlay(value)),
-                  ),
-                ),
-              ),
               SettingsDividerLabel(label: L.of(context)!.settings_podcast_management_divider_label),
               const EpisodeRefreshWidget(),
               MergeSemantics(
@@ -116,17 +97,6 @@ class _SettingsState extends State<Settings> {
                   trailing: Switch.adaptive(
                     value: snapshot.data!.backgroundUpdateMobileData,
                     onChanged: (value) => setState(() => settingsBloc.backgroundUpdatesMobileData(value)),
-                  ),
-                ),
-              ),
-              SettingsDividerLabel(label: L.of(context)!.settings_notification_divider_label),
-              MergeSemantics(
-                child: ListTile(
-                  title: Text(L.of(context)!.settings_refresh_notification_option),
-                  subtitle: Text(L.of(context)!.settings_refresh_notification_option_subtitle),
-                  trailing: Switch.adaptive(
-                    value: snapshot.data!.updatesNotification,
-                    onChanged: (value) => setState(() => settingsBloc.updateNotification(value)),
                   ),
                 ),
               ),

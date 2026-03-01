@@ -156,12 +156,12 @@ class _MiniPlayerBuilderState extends State<_MiniPlayerBuilder> with SingleTicke
                                                     ? placeholderBuilder.builder()(context)
                                                     : const Image(
                                                         image:
-                                                            AssetImage('assets/images/anytime-placeholder-logo.png')),
+                                                            AssetImage('assets/images/meditation-placeholder-logo.png')),
                                                 errorPlaceholder: placeholderBuilder != null
                                                     ? placeholderBuilder.errorBuilder()(context)
                                                     : const Image(
                                                         image:
-                                                            AssetImage('assets/images/anytime-placeholder-logo.png')),
+                                                            AssetImage('assets/images/meditation-placeholder-logo.png')),
                                               )
                                             : Container(),
                                       ),

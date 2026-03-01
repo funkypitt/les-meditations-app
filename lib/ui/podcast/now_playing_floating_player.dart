@@ -99,10 +99,10 @@ class _FloatingPlayerBuilderState extends State<_FloatingPlayerBuilder> with Sin
                                 borderRadius: 4.0,
                                 placeholder: placeholderBuilder != null
                                     ? placeholderBuilder.builder()(context)
-                                    : const Image(image: AssetImage('assets/images/anytime-placeholder-logo.png')),
+                                    : const Image(image: AssetImage('assets/images/meditation-placeholder-logo.png')),
                                 errorPlaceholder: placeholderBuilder != null
                                     ? placeholderBuilder.errorBuilder()(context)
-                                    : const Image(image: AssetImage('assets/images/anytime-placeholder-logo.png')),
+                                    : const Image(image: AssetImage('assets/images/meditation-placeholder-logo.png')),
                               )
                             : Container(),
                       ),
