@@ -483,8 +483,19 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
               width: 52.0,
               height: 52.0,
             ),
+            applicationLegalese: 'Copyright (c) 2020 Ben Hills and the project contributors.\nBSD-3-Clause License.',
             children: <Widget>[
-              const Text('enpleineconscience.ch — Méditations guidées'),
+              const Padding(
+                padding: EdgeInsets.only(top: 16.0),
+                child: Text('enpleineconscience.ch — Méditations guidées'),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(top: 12.0),
+                child: Text(
+                  'Basé sur Anytime Podcast Player par Ben Hills.',
+                  style: TextStyle(fontSize: 12.0),
+                ),
+              ),
             ]);
         break;
       case 'settings':
