@@ -30,6 +30,7 @@ workflows:
       google_play:
         credentials: $GOOGLE_PLAY_SERVICE_ACCOUNT_CREDENTIALS
         track: beta
+        changes_not_sent_for_review: true
 
   # ── iOS: build, sign, publish to TestFlight ──
   ios-release:
