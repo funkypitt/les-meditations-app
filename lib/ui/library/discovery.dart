@@ -69,18 +69,29 @@ class _CatalogTile extends StatelessWidget {
           Icons.chevron_right,
           color: theme.primaryColor,
         ),
-        onTap: () {
+        onTap: () async {
           final podcastBloc = Provider.of<PodcastBloc>(context, listen: false);
-          Navigator.push(
-            context,
-            MaterialPageRoute<void>(
-              settings: const RouteSettings(name: 'podcastdetails'),
-              builder: (context) => PodcastDetails(
-                Podcast.fromUrl(url: feed.feedUrl),
-                podcastBloc,
+
+          // Look up the local subscription first (works offline).
+          // The guid stored in Sembast is the feed URL.
+          var podcast = await podcastBloc.podcastService.repository
+              .findPodcastByGuid(feed.feedUrl);
+
+          // Fall back to a network fetch if not yet subscribed.
+          podcast ??= Podcast.fromUrl(url: feed.feedUrl);
+
+          if (context.mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                settings: const RouteSettings(name: 'podcastdetails'),
+                builder: (context) => PodcastDetails(
+                  podcast!,
+                  podcastBloc,
+                ),
               ),
-            ),
-          );
+            );
+          }
         },
       ),
     );
