@@ -73,8 +73,8 @@ class _MiniPlayerBuilderState extends State<_MiniPlayerBuilder> with SingleTicke
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final audioBloc = Provider.of<AudioBloc>(context, listen: false);
-    final width = MediaQuery.sizeOf(context).width;
-    final padding = MediaQuery.paddingOf(context);
+    final width = MediaQuery.of(context).size.width;
+    final padding = MediaQuery.of(context).padding;
     final placeholderBuilder = PlaceholderBuilder.of(context);
 
     return Dismissible(

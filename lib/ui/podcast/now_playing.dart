@@ -82,8 +82,8 @@ class _NowPlayingState extends State<NowPlaying> with WidgetsBindingObserver {
   }
 
   bool isMobilePortrait(BuildContext context) {
-    final orientation = MediaQuery.orientationOf(context);
-    final width = MediaQuery.widthOf(context);
+    final orientation = MediaQuery.of(context).orientation;
+    final width = MediaQuery.of(context).size.width;
 
     return (orientation == Orientation.portrait || width <= 1000);
   }
@@ -92,7 +92,7 @@ class _NowPlayingState extends State<NowPlaying> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final audioBloc = Provider.of<AudioBloc>(context, listen: false);
     final playerBuilder = PlayerControlsBuilder.of(context);
-    final orientation = MediaQuery.orientationOf(context);
+    final orientation = MediaQuery.of(context).orientation;
 
     return Semantics(
       header: false,
@@ -201,8 +201,8 @@ class NowPlayingEpisode extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final placeholderBuilder = PlaceholderBuilder.of(context);
-    final orientation = MediaQuery.orientationOf(context);
-    final size = MediaQuery.sizeOf(context);
+    final orientation = MediaQuery.of(context).orientation;
+    final size = MediaQuery.of(context).size;
 
     return OrientationBuilder(
       builder: (context, _) {
@@ -472,7 +472,7 @@ class NowPlayingTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final orientation = MediaQuery.orientationOf(context);
+    final orientation = MediaQuery.of(context).orientation;
 
     return DefaultTabController(
         length: episode.hasChapters ? 3 : 2,
