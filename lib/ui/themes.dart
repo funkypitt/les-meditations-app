@@ -28,10 +28,10 @@ ThemeData _buildLightTheme() {
       error: Color(0xffd32f2f),
       onSurface: _meditationBurgundy,
     ),
-    bottomAppBarTheme: const BottomAppBarTheme().copyWith(
+    bottomAppBarTheme: const BottomAppBarThemeData().copyWith(
       color: _warmWhite,
     ),
-    cardTheme: const CardTheme().copyWith(
+    cardTheme: const CardThemeData().copyWith(
       color: _meditationBrown,
       shadowColor: _meditationBurgundyDark,
     ),
@@ -98,10 +98,10 @@ ThemeData _buildDarkTheme() {
       error: Color(0xffd32f2f),
       onSurface: Color(0xffffffff),
     ),
-    bottomAppBarTheme: const BottomAppBarTheme().copyWith(
+    bottomAppBarTheme: const BottomAppBarThemeData().copyWith(
       color: const Color(0xff222222),
     ),
-    cardTheme: const CardTheme().copyWith(
+    cardTheme: const CardThemeData().copyWith(
       color: const Color(0xff444444),
       shadowColor: const Color(0x77ffffff),
     ),

@@ -1046,9 +1046,7 @@ class _PositionSliderState extends State<PositionSlider> with TickerProviderStat
       widget.divisions != null ? valueIndicator : const SizedBox.shrink(),
       ShowValueIndicator.onlyForContinuous =>
       widget.divisions == null ? valueIndicator : const SizedBox.shrink(),
-      ShowValueIndicator.alwaysVisible ||
-      ShowValueIndicator.always ||
-      ShowValueIndicator.onDrag => valueIndicator,
+      ShowValueIndicator.always => valueIndicator,
     };
   }
 }
@@ -1474,12 +1472,12 @@ class _RenderSlider extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
   }
 
   bool get shouldAlwaysShowValueIndicator =>
-      _sliderTheme.showValueIndicator == ShowValueIndicator.alwaysVisible;
+      _sliderTheme.showValueIndicator == ShowValueIndicator.always;
   bool get shouldShowValueIndicatorWhenDragged => switch (_sliderTheme.showValueIndicator!) {
     ShowValueIndicator.onlyForDiscrete => isDiscrete,
     ShowValueIndicator.onlyForContinuous => !isDiscrete,
-    ShowValueIndicator.always || ShowValueIndicator.onDrag => true,
-    ShowValueIndicator.never || ShowValueIndicator.alwaysVisible => false,
+    ShowValueIndicator.always => true,
+    ShowValueIndicator.never => false,
   };
 
   double get _adjustmentUnit {

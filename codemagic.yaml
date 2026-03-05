@@ -5,7 +5,7 @@ workflows:
     max_build_duration: 30
     instance_type: mac_mini_m2
     environment:
-      flutter: 3.29.3
+      flutter: stable
       java: 21
       android_signing:
         - android-key-lm
@@ -40,7 +40,7 @@ workflows:
     integrations:
       app_store_connect: codemagic
     environment:
-      flutter: 3.29.3
+      flutter: stable
       ios_signing:
         distribution_type: app_store
         bundle_identifier: ch.enpleineconscience.lesmeditations
