@@ -19,8 +19,8 @@ const feedbackUrl = String.fromEnvironment('FEEDBACK_URL', defaultValue: '');
 class Environment {
   static const _applicationName = 'EnPleineConscience';
   static const _applicationUrl = 'https://www.enpleineconscience.ch';
-  static const _projectVersion = '5.0.3';
-  static const _build = '50003';
+  static const _projectVersion = '5.0.4';
+  static const _build = '50004';
 
   static var _agentString = userAgentAppString;
 
