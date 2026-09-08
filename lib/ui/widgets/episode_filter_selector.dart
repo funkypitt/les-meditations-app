@@ -64,8 +64,11 @@ class _EpisodeFilterSelectorWidgetState extends State<EpisodeFilterSelectorWidge
                                   ),
                                 ),
                                 builder: (context) {
-                                  return EpisodeFilterSlider(
-                                    podcast: widget.podcast!,
+                                  return SafeArea(
+                                    top: false,
+                                    child: EpisodeFilterSlider(
+                                      podcast: widget.podcast!,
+                                    ),
                                   );
                                 });
                           }

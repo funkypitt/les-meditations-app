@@ -89,7 +89,10 @@ class _SleepSelectorWidgetState extends State<SleepSelectorWidget> {
                                   ),
                                 ),
                                 builder: (context) {
-                                  return const SleepSlider();
+                                  return const SafeArea(
+                                    top: false,
+                                    child: SleepSlider(),
+                                  );
                                 });
                           },
                         );

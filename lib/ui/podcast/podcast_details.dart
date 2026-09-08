@@ -328,6 +328,8 @@ class _PodcastDetailsState extends State<PodcastDetails> {
                           ));
                         }
                       }),
+                  // Edge-to-edge: keep the last episode clear of the navigation bar.
+                  SliverPadding(padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom)),
                 ],
               ),
             ),

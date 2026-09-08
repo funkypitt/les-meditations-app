@@ -27,10 +27,13 @@ class UpNextPage extends StatelessWidget {
           stream: audioBloc.nowPlaying,
           builder: (context, snapshot) {
             var playing = snapshot.hasData && snapshot.data != null;
-            return Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: UpNextView(
-                playing: playing,
+            return SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: UpNextView(
+                  playing: playing,
+                ),
               ),
             );
           }),

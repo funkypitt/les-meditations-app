@@ -49,6 +49,8 @@ class ShowNotes extends StatelessWidget {
               ],
             ),
           ),
+          // Edge-to-edge: keep the end of the notes clear of the navigation bar.
+          SliverPadding(padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom)),
         ]));
   }
 }

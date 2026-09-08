@@ -52,6 +52,8 @@ class _EpisodeDetailsState extends State<EpisodeDetails> {
         builder: (BuildContext context, ScrollController scrollController) {
           return SingleChildScrollView(
             controller: scrollController,
+            // Keep the last row clear of the transparent navigation bar (edge-to-edge).
+            padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,

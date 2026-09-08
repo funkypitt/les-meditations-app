@@ -17,7 +17,15 @@ void main() async {
   try {
     List<int> certificateAuthorityBytes = [];
     WidgetsFlutterBinding.ensureInitialized();
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
+
+    // Android 15 (SDK 35) forces edge-to-edge. Opt in explicitly so older
+    // Android versions behave the same way and the layout is consistent
+    // (equivalent of enableEdgeToEdge() on the native side).
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+    ));
 
     Logger.root.level = Level.FINE;
 

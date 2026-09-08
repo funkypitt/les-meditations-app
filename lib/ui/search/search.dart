@@ -114,6 +114,8 @@ class _SearchState extends State<Search> {
             ],
           ),
           SearchResults(data: bloc.results!),
+          // Edge-to-edge: keep the last result clear of the navigation bar.
+          SliverPadding(padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom)),
         ],
       ),
     );

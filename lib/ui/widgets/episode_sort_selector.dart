@@ -62,8 +62,11 @@ class _EpisodeSortSelectorWidgetState extends State<EpisodeSortSelectorWidget> {
                                   ),
                                 ),
                                 builder: (context) {
-                                  return EpisodeSortSlider(
-                                    podcast: widget.podcast!,
+                                  return SafeArea(
+                                    top: false,
+                                    child: EpisodeSortSlider(
+                                      podcast: widget.podcast!,
+                                    ),
                                   );
                                 });
                           }
