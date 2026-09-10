@@ -1,0 +1,7 @@
+les méditations est l'application mobile des méditations guidées de enpleineconscience.ch.
+
+Elle propose un catalogue fixe de podcasts de méditation guidée, organisés par catégorie (bodyscan, respiration, pleine conscience, etc.). Écoutez un épisode en streaming ou téléchargez-le pour l'écouter hors ligne, la lecture continuant en arrière-plan.
+
+L'application est un fork de Anytime Podcast Player par Ben Hills (BSD-3-Clause), rebaptisé et simplifié pour l'écoute de méditations : pas de recherche de podcasts, pas d'import/export OPML, uniquement le catalogue de enpleineconscience.ch.
+
+Pierre Gallaz · développé avec Claude Code

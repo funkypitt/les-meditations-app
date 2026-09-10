@@ -1,0 +1,7 @@
+les méditations is the mobile app of the guided meditations of enpleineconscience.ch.
+
+It offers a fixed catalogue of guided-meditation podcasts, organised by category (body scan, breathing, mindfulness, and more). Stream an episode or download it to listen offline, with playback continuing in the background.
+
+The app is a fork of Anytime Podcast Player by Ben Hills (BSD-3-Clause), rebranded and simplified for listening to meditations: no podcast search, no OPML import/export, only the catalogue of enpleineconscience.ch.
+
+Pierre Gallaz · developed with Claude Code

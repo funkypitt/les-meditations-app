@@ -496,6 +496,15 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
                   style: TextStyle(fontSize: 12.0),
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.only(top: 4.0),
+                child: Text(
+                  Localizations.localeOf(context).languageCode == 'fr'
+                      ? 'Pierre Gallaz · développé avec Claude Code'
+                      : 'Pierre Gallaz · developed with Claude Code',
+                  style: const TextStyle(fontSize: 12.0),
+                ),
+              ),
             ]);
         break;
       case 'settings':

@@ -41,3 +41,13 @@ Basé sur la stack du projet Anytime :
 Ce projet est distribué sous licence BSD-3-Clause. Voir le fichier [LICENSE](LICENSE) pour les détails.
 
 Copyright (c) 2020 Ben Hills and the project contributors. All rights reserved.
+
+## Crédits / Credits
+
+Basé sur / Based on [Anytime Podcast Player](https://github.com/amugofjava/anytime_podcast_player) by Ben Hills, BSD-3-Clause. Voir / see `NOTICE.md`.
+
+© 2026 Pierre Gallaz. Développé avec [Claude Code](https://claude.com/claude-code) (Anthropic).
+Licence BSD-3-Clause, voir `LICENSE`.
+
+© 2026 Pierre Gallaz. Developed with [Claude Code](https://claude.com/claude-code) (Anthropic).
+BSD-3-Clause licence, see `LICENSE`.
