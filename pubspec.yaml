@@ -1,7 +1,7 @@
 name: anytime
 description: enpleineconscience.ch — Méditations guidées
 
-version: 5.0.7+50007
+version: 5.0.8+50008
 
 environment:
   sdk: '>=3.6.0 <4.0.0'
