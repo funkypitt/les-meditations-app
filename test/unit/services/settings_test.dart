@@ -40,7 +40,7 @@ void main() {
   }, timeout: const Timeout(Duration(milliseconds: timeout)));
 
   test('Test theme', () async {
-    expect(mobileSettingsService?.theme, 'dark');
+    expect(mobileSettingsService?.theme, 'system');
     expectLater(settingsListener, emits('theme'));
     mobileSettingsService?.theme = 'dark';
     expect(mobileSettingsService?.theme, 'dark');

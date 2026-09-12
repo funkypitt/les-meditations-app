@@ -13,7 +13,7 @@ void main() {
 
     test('userAgent contains application name and version', () {
       final userAgent = Environment.userAgent();
-      expect(userAgent, contains('Anytime/${Environment.projectVersion}'));
+      expect(userAgent, contains('EnPleineConscience/${Environment.projectVersion}'));
     });
   });
 }
