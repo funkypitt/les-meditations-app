@@ -125,7 +125,7 @@ class UpNextView extends StatelessWidget {
                                     BasicDialogAction(
                                       title: ActionText(
                                         Theme.of(context).platform == TargetPlatform.iOS
-                                            ? L.of(context)!.queue_clear_button_label.toUpperCase()
+                                            ? L.of(context)!.queue_clear_button_label
                                             : L.of(context)!.queue_clear_button_label,
                                       ),
                                       iosIsDefaultAction: true,

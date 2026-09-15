@@ -9,6 +9,7 @@ import 'package:anytime/l10n/L.dart';
 import 'package:anytime/services/audio/audio_player_service.dart';
 import 'package:anytime/ui/widgets/sleep_selector.dart';
 import 'package:anytime/ui/widgets/speed_selector.dart';
+import 'package:anytime/ui/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
@@ -157,13 +158,15 @@ class _AnimatedPlayButtonState extends State<AnimatedPlayButton> with SingleTick
     final playing = widget.audioState == AudioState.playing;
     final buffering = widget.audioState == AudioState.buffering;
 
+    final palette = Palette.of(context);
+
     return Stack(
       alignment: AlignmentDirectional.center,
       children: [
         if (buffering)
           SpinKitRing(
-            lineWidth: 4.0,
-            color: Theme.of(context).primaryColor,
+            lineWidth: 3.0,
+            color: palette.accent,
             size: 84,
           ),
         if (!buffering)
@@ -175,10 +178,11 @@ class _AnimatedPlayButtonState extends State<AnimatedPlayButton> with SingleTick
           message: playing ? L.of(context)!.pause_button_label : L.of(context)!.play_button_label,
           child: TextButton(
             style: TextButton.styleFrom(
-              shape: CircleBorder(side: BorderSide(color: Theme.of(context).highlightColor, width: 0.0)),
-              backgroundColor: Theme.of(context).brightness == Brightness.light ? Colors.orange : Colors.grey[800],
-              foregroundColor: Theme.of(context).brightness == Brightness.light ? Colors.orange : Colors.grey[800],
-              padding: const EdgeInsets.all(6.0),
+              shape: const CircleBorder(),
+              backgroundColor: palette.accent,
+              foregroundColor: palette.onAccent,
+              minimumSize: const Size(72.0, 72.0),
+              padding: EdgeInsets.zero,
             ),
             onPressed: () {
               if (playing) {
@@ -188,10 +192,10 @@ class _AnimatedPlayButtonState extends State<AnimatedPlayButton> with SingleTick
               }
             },
             child: AnimatedIcon(
-              size: 60.0,
+              size: 40.0,
               semanticLabel: playing ? L.of(context)!.pause_button_label : L.of(context)!.play_button_label,
               icon: AnimatedIcons.play_pause,
-              color: Colors.white,
+              color: palette.onAccent,
               progress: _playPauseController,
             ),
           ),

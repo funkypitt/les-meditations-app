@@ -2,10 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:anytime/ui/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:percent_indicator/percent_indicator.dart';
 
+/// The play control shown on each episode row: a soft disc that turns burgundy
+/// while the episode is the one playing.
 class PlayPauseButton extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -20,19 +22,22 @@ class PlayPauseButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = Palette.of(context);
+    final active = icon == Icons.pause;
+
     return Semantics(
       label: '$label $title',
-      child: CircularPercentIndicator(
-        radius: 19.0,
-        lineWidth: 1.5,
-        backgroundColor: Theme.of(context).primaryColor,
-        percent: 0.0,
-        center: Icon(
+      child: Container(
+        width: 44.0,
+        height: 44.0,
+        decoration: BoxDecoration(
+          color: active ? palette.accent : palette.tint,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
           icon,
-          size: 22.0,
-
-          /// Why is this not picking up the theme like other widgets?!?!?!
-          color: Theme.of(context).primaryColor,
+          size: 24.0,
+          color: active ? palette.onAccent : palette.ink,
         ),
       ),
     );
@@ -53,25 +58,28 @@ class PlayPauseBusyButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = Palette.of(context);
+
     return Semantics(
-        label: '$label $title',
+      label: '$label $title',
+      child: SizedBox(
+        width: 44.0,
+        height: 44.0,
         child: Stack(
+          alignment: Alignment.center,
           children: <Widget>[
-            SizedBox(
-              height: 48.0,
-              width: 48.0,
-              child: Icon(
-                icon,
-                size: 22.0,
-                color: Theme.of(context).primaryColor,
-              ),
+            Container(
+              decoration: BoxDecoration(color: palette.tint, shape: BoxShape.circle),
             ),
+            Icon(icon, size: 24.0, color: palette.ink),
             SpinKitRing(
-              lineWidth: 1.5,
-              color: Theme.of(context).primaryColor,
-              size: 38.0,
+              lineWidth: 2.0,
+              color: palette.accent,
+              size: 44.0,
             ),
           ],
-        ));
+        ),
+      ),
+    );
   }
 }

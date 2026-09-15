@@ -14,7 +14,6 @@ import 'package:anytime/state/bloc_state.dart';
 import 'package:anytime/ui/podcast/funding_menu.dart';
 import 'package:anytime/ui/podcast/playback_error_listener.dart';
 import 'package:anytime/ui/podcast/podcast_episode_list.dart';
-import 'package:anytime/ui/widgets/delayed_progress_indicator.dart';
 import 'package:anytime/ui/widgets/episode_filter_selector.dart';
 import 'package:anytime/ui/widgets/episode_sort_selector.dart';
 import 'package:anytime/ui/widgets/placeholder_builder.dart';
@@ -47,6 +46,8 @@ class PodcastDetails extends StatefulWidget {
 }
 
 class _PodcastDetailsState extends State<PodcastDetails> {
+  /// Scroll offset past which the compact header is gone and the title moves into the app bar.
+  static const _headerCollapseOffset = 96.0;
   final log = Logger('PodcastDetails');
   final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
   final ScrollController _sliverScrollController = ScrollController();
@@ -73,14 +74,14 @@ class _PodcastDetailsState extends State<PodcastDetails> {
     _sliverScrollController.addListener(() {
       if (!toolbarCollapsed &&
           _sliverScrollController.hasClients &&
-          _sliverScrollController.offset > (300 - kToolbarHeight)) {
+          _sliverScrollController.offset > _headerCollapseOffset) {
         setState(() {
           toolbarCollapsed = true;
           _updateSystemOverlayStyle();
         });
       } else if (toolbarCollapsed &&
           _sliverScrollController.hasClients &&
-          _sliverScrollController.offset < (300 - kToolbarHeight)) {
+          _sliverScrollController.offset < _headerCollapseOffset) {
         setState(() {
           toolbarCollapsed = false;
           _updateSystemOverlayStyle();
@@ -117,7 +118,7 @@ class _PodcastDetailsState extends State<PodcastDetails> {
   void didChangeDependencies() {
     _systemOverlayStyle = SystemUiOverlayStyle(
       statusBarIconBrightness: Theme.of(context).brightness == Brightness.light ? Brightness.dark : Brightness.light,
-      statusBarColor: Theme.of(context).appBarTheme.backgroundColor!.withValues(alpha: toolbarCollapsed ? 1.0 : 0.5),
+      statusBarColor: Colors.transparent,
     );
     super.didChangeDependencies();
   }
@@ -151,7 +152,7 @@ class _PodcastDetailsState extends State<PodcastDetails> {
     setState(() {
       _systemOverlayStyle = SystemUiOverlayStyle(
         statusBarIconBrightness: Theme.of(context).brightness == Brightness.light ? Brightness.dark : Brightness.light,
-        statusBarColor: Theme.of(context).appBarTheme.backgroundColor!.withValues(alpha: toolbarCollapsed ? 1.0 : 0.5),
+        statusBarColor: Colors.transparent,
       );
     });
   }
@@ -161,7 +162,6 @@ class _PodcastDetailsState extends State<PodcastDetails> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final podcastBloc = Provider.of<PodcastBloc>(context, listen: false);
-    final placeholderBuilder = PlaceholderBuilder.of(context);
 
     return Semantics(
       header: false,
@@ -184,53 +184,22 @@ class _PodcastDetailsState extends State<PodcastDetails> {
                 controller: _sliverScrollController,
                 slivers: <Widget>[
                   SliverAppBar(
-                      systemOverlayStyle: _systemOverlayStyle,
-                      title: AnimatedOpacity(
-                          opacity: toolbarCollapsed ? 1.0 : 0.0,
-                          duration: const Duration(milliseconds: 500),
-                          child: Text(widget.podcast.title)),
-                      leading: PlatformBackButton(
-                        iconColour: toolbarCollapsed && theme.brightness == Brightness.light
-                            ? theme.appBarTheme.foregroundColor!
-                            : Colors.white,
-                        decorationColour: toolbarCollapsed ? const Color(0x00000000) : const Color(0x22000000),
-                        onPressed: () {
-                          _resetSystemOverlayStyle();
-                          Navigator.pop(context);
-                        },
-                      ),
-                      expandedHeight: 300.0,
-                      floating: false,
-                      pinned: true,
-                      snap: false,
-                      flexibleSpace: FlexibleSpaceBar(
-                        background: Hero(
-                          key: Key('detailhero${widget.podcast.imageUrl}:${widget.podcast.link}'),
-                          tag: '${widget.podcast.imageUrl}:${widget.podcast.link}',
-                          child: ExcludeSemantics(
-                            child: StreamBuilder<BlocState<Podcast>>(
-                                initialData: BlocEmptyState<Podcast>(),
-                                stream: podcastBloc.details,
-                                builder: (context, snapshot) {
-                                  final state = snapshot.data;
-                                  Podcast? podcast = widget.podcast;
-
-                                  if (state is BlocLoadingState<Podcast>) {
-                                    podcast = state.data;
-                                  }
-
-                                  if (state is BlocPopulatedState<Podcast>) {
-                                    podcast = state.results;
-                                  }
-
-                                  return PodcastHeaderImage(
-                                    podcast: podcast!,
-                                    placeholderBuilder: placeholderBuilder,
-                                  );
-                                }),
-                          ),
-                        ),
-                      )),
+                    systemOverlayStyle: _systemOverlayStyle,
+                    title: AnimatedOpacity(
+                      opacity: toolbarCollapsed ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 300),
+                      child: Text(widget.podcast.title, overflow: TextOverflow.ellipsis),
+                    ),
+                    leading: PlatformBackButton(
+                      iconColour: theme.appBarTheme.iconTheme?.color ?? theme.iconTheme.color!,
+                      decorationColour: const Color(0x00000000),
+                      onPressed: () {
+                        _resetSystemOverlayStyle();
+                        Navigator.pop(context);
+                      },
+                    ),
+                    pinned: true,
+                  ),
                   StreamBuilder<BlocState<Podcast>>(
                       initialData: BlocEmptyState<Podcast>(),
                       stream: podcastBloc.details,
@@ -340,39 +309,6 @@ class _PodcastDetailsState extends State<PodcastDetails> {
   }
 }
 
-/// Renders the podcast or episode image.
-class PodcastHeaderImage extends StatelessWidget {
-  const PodcastHeaderImage({
-    super.key,
-    required this.podcast,
-    required this.placeholderBuilder,
-  });
-
-  final Podcast podcast;
-  final PlaceholderBuilder? placeholderBuilder;
-
-  @override
-  Widget build(BuildContext context) {
-    if (podcast.imageUrl == null || podcast.imageUrl!.isEmpty) {
-      return const SizedBox(
-        height: 560,
-        width: 560,
-      );
-    }
-
-    return PodcastBannerImage(
-      key: Key('details${podcast.imageUrl}'),
-      url: podcast.imageUrl!,
-      fit: BoxFit.cover,
-      placeholder:
-          placeholderBuilder != null ? placeholderBuilder?.builder()(context) : DelayedCircularProgressIndicator(),
-      errorPlaceholder: placeholderBuilder != null
-          ? placeholderBuilder?.errorBuilder()(context)
-          : const Image(image: AssetImage('assets/images/meditation-placeholder-logo.png')),
-    );
-  }
-}
-
 /// Renders the podcast title, copyright, description, follow/unfollow and
 /// overflow button.
 ///
@@ -417,32 +353,65 @@ class _PodcastTitleState extends State<PodcastTitle> with SingleTickerProviderSt
     final settings = Provider.of<SettingsBloc>(context, listen: false).currentSettings;
     final podcastBloc = Provider.of<PodcastBloc>(context, listen: false);
 
+    final placeholderBuilder = PlaceholderBuilder.of(context);
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 0.0),
+      padding: const EdgeInsets.fromLTRB(20.0, 4.0, 20.0, 0.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 20.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ExcludeSemantics(
+                  child: Hero(
+                    tag: '${widget.podcast.imageUrl}:${widget.podcast.link}',
+                    child: PodcastImage(
+                      key: Key('details${widget.podcast.imageUrl}'),
+                      url: widget.podcast.imageUrl ?? '',
+                      width: 88.0,
+                      height: 88.0,
+                      borderRadius: 18.0,
+                      placeholder: placeholderBuilder != null
+                          ? placeholderBuilder.builder()(context)
+                          : const Image(image: AssetImage('assets/images/meditation-placeholder-logo.png')),
+                      errorPlaceholder: placeholderBuilder != null
+                          ? placeholderBuilder.errorBuilder()(context)
+                          : const Image(image: AssetImage('assets/images/meditation-placeholder-logo.png')),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 18.0),
+                Expanded(
+                  child: MergeSemantics(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(widget.podcast.title, style: theme.textTheme.titleLarge),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Text(widget.podcast.copyright ?? '', style: theme.textTheme.bodySmall),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: MergeSemantics(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 2.0),
-                        child: Text(widget.podcast.title, style: theme.textTheme.titleLarge),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
-                        child: Text(widget.podcast.copyright ?? '', style: theme.textTheme.bodySmall),
-                      ),
-                    ],
-                  ),
+                child: PodcastDescription(
+                  key: descriptionKey,
+                  content: description,
+                  isDescriptionExpandedStream: isDescriptionExpandedStream,
                 ),
               ),
               StreamBuilder<bool>(
@@ -483,13 +452,8 @@ class _PodcastTitleState extends State<PodcastTitle> with SingleTickerProviderSt
                   })
             ],
           ),
-          PodcastDescription(
-            key: descriptionKey,
-            content: description,
-            isDescriptionExpandedStream: isDescriptionExpandedStream,
-          ),
           Padding(
-            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+            padding: const EdgeInsets.only(top: 4.0, bottom: 8.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -531,7 +495,7 @@ class _PodcastTitleState extends State<PodcastTitle> with SingleTickerProviderSt
           SizeTransition(
             sizeFactor: _animation,
             child: Padding(
-                padding: const EdgeInsets.all(7.0),
+                padding: const EdgeInsets.only(bottom: 12.0),
                 child: TextField(
                     focusNode: _searchFocus,
                     controller: _episodeSearchController,

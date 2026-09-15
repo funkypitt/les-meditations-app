@@ -16,7 +16,6 @@ import 'package:anytime/bloc/settings/settings_bloc.dart';
 import 'package:anytime/bloc/ui/pager_bloc.dart';
 import 'package:anytime/core/environment.dart';
 import 'package:anytime/core/meditation_catalog.dart';
-import 'package:anytime/entities/feed.dart';
 import 'package:anytime/entities/podcast.dart';
 import 'package:anytime/l10n/L.dart';
 import 'package:anytime/navigation/navigation_route_observer.dart';
@@ -36,8 +35,6 @@ import 'package:anytime/state/library_state.dart';
 import 'package:anytime/ui/library/discovery.dart';
 import 'package:anytime/ui/library/downloads.dart';
 import 'package:anytime/ui/podcast/mini_player.dart';
-import 'package:anytime/ui/podcast/podcast_details.dart';
-import 'package:anytime/ui/podcast/up_next_view.dart';
 import 'package:anytime/ui/settings/settings.dart';
 import 'package:anytime/ui/themes.dart';
 import 'package:anytime/ui/widgets/layout_selector.dart';
@@ -353,9 +350,12 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
                     visible: widget.topBarVisible,
                     sliver: SliverAppBar(
                       title: ExcludeSemantics(
-                        child: Image.asset(
-                          'assets/images/meditation-logo.png',
-                          height: 42,
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(color: Palette.of(context).tint, shape: BoxShape.circle),
+                          child: Image.asset('assets/images/meditation-logo-mark.png'),
                         ),
                       ),
                       centerTitle: true,
@@ -420,24 +420,19 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
             builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
               int index = snapshot.data ?? 0;
 
-              return BottomNavigationBar(
-                type: BottomNavigationBarType.fixed,
-                backgroundColor: theme.bottomAppBarTheme.color,
-                selectedIconTheme: theme.iconTheme,
-                selectedItemColor: theme.iconTheme.color,
-                selectedFontSize: 11.0,
-                unselectedFontSize: 11.0,
-                unselectedItemColor:
-                    HSLColor.fromColor(theme.bottomAppBarTheme.color ?? const Color(0xFFFFF8F5)).withLightness(0.8).toColor(),
-                currentIndex: index,
-                onTap: pager.changePage,
-                items: <BottomNavigationBarItem>[
-                  BottomNavigationBarItem(
-                    icon: index == 0 ? const Icon(Icons.self_improvement) : const Icon(Icons.self_improvement_outlined),
+              return NavigationBar(
+                selectedIndex: index,
+                onDestinationSelected: pager.changePage,
+                labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                destinations: <NavigationDestination>[
+                  const NavigationDestination(
+                    icon: Icon(Icons.self_improvement_outlined),
+                    selectedIcon: Icon(Icons.self_improvement),
                     label: 'Méditations',
                   ),
-                  BottomNavigationBarItem(
-                    icon: index == 1 ? const Icon(Icons.download) : const Icon(Icons.download_outlined),
+                  NavigationDestination(
+                    icon: const Icon(Icons.download_outlined),
+                    selectedIcon: const Icon(Icons.download),
                     label: L.of(context)?.downloads ?? 'Téléchargements',
                   ),
                 ],
@@ -469,7 +464,6 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
   }
 
   void _menuSelect(String choice) async {
-    var podcastBloc = Provider.of<PodcastBloc>(context, listen: false);
     final theme = Theme.of(context);
 
     switch (choice) {
@@ -479,7 +473,7 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
             applicationName: 'les méditations',
             applicationVersion: 'v${Environment.projectVersion}',
             applicationIcon: Image.asset(
-              'assets/images/meditation-logo.png',
+              'assets/images/meditation-logo-mark.png',
               width: 52.0,
               height: 52.0,
             ),

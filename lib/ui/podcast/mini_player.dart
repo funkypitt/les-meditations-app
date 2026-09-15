@@ -122,7 +122,7 @@ class _MiniPlayerBuilderState extends State<_MiniPlayerBuilder> with SingleTicke
                   bottom: Divider.createBorderSide(context, width: 0.0, color: theme.dividerColor),
                 )),
             child: Padding(
-              padding: const EdgeInsets.only(left: 4.0, right: 4.0),
+              padding: const EdgeInsets.only(left: 12.0, right: 4.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,7 +151,7 @@ class _MiniPlayerBuilderState extends State<_MiniPlayerBuilder> with SingleTicke
                                                 url: snapshot.data!.imageUrl!,
                                                 width: 58.0,
                                                 height: 58.0,
-                                                borderRadius: 4.0,
+                                                borderRadius: 12.0,
                                                 placeholder: placeholderBuilder != null
                                                     ? placeholderBuilder.builder()(context)
                                                     : const Image(
@@ -255,7 +255,7 @@ class _MiniPlayerBuilderState extends State<_MiniPlayerBuilder> with SingleTicke
 
                         return Container(
                           width: cw,
-                          height: 1.0,
+                          height: 2.0,
                           color: theme.primaryColor,
                         );
                       }),

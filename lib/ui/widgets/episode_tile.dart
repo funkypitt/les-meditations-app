@@ -9,8 +9,8 @@ import 'package:anytime/l10n/L.dart';
 import 'package:anytime/state/queue_event_state.dart';
 import 'package:anytime/ui/podcast/episode_details.dart';
 import 'package:anytime/ui/podcast/transport_controls.dart';
+import 'package:anytime/ui/themes.dart';
 import 'package:anytime/ui/widgets/action_text.dart';
-import 'package:anytime/ui/widgets/tile_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:intl/intl.dart' show DateFormat;
@@ -86,8 +86,21 @@ class _ExpandableEpisodeTileState extends State<ExpandableEpisodeTile> {
     final episodeBloc = Provider.of<EpisodeBloc>(context);
     final queueBloc = Provider.of<QueueBloc>(context);
 
+    final palette = Palette.of(context);
+    final progress = widget.episode.percentagePlayed / 100;
+    final actionStyle = TextButton.styleFrom(
+      foregroundColor: palette.inkSoft,
+      disabledForegroundColor: palette.inkSoft.withValues(alpha: 0.35),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      textStyle: textTheme.labelSmall,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+    );
+
     return ExpansionTile(
-      tilePadding: const EdgeInsets.fromLTRB(16.0, 0.0, 8.0, 0.0),
+      tilePadding: const EdgeInsets.fromLTRB(20.0, 6.0, 12.0, 6.0),
+      childrenPadding: EdgeInsets.zero,
+      shape: const Border(),
+      collapsedShape: const Border(),
       key: Key('PT${widget.episode.guid}'),
       onExpansionChanged: (isExpanded) {
         setState(() {
@@ -102,32 +115,30 @@ class _ExpandableEpisodeTileState extends State<ExpandableEpisodeTile> {
           play: widget.play,
         ),
       ),
-      leading: ExcludeSemantics(
-        child: Stack(
-          alignment: Alignment.bottomLeft,
-          fit: StackFit.passthrough,
-          children: <Widget>[
-            Opacity(
-              opacity: widget.episode.played ? 0.5 : 1.0,
-              child: TileImage(
-                url: widget.episode.thumbImageUrl ?? widget.episode.imageUrl!,
-                size: 56.0,
-                highlight: widget.episode.highlight,
-              ),
-            ),
-            SizedBox(
-              height: 5.0,
-              width: 56.0 * (widget.episode.percentagePlayed / 100),
-              child: Container(
-                color: Theme.of(context).primaryColor,
-              ),
-            ),
-          ],
-        ),
-      ),
       subtitle: Opacity(
         opacity: widget.episode.played ? 0.5 : 1.0,
-        child: EpisodeSubtitle(widget.episode),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            EpisodeSubtitle(widget.episode),
+            if (progress > 0 && progress < 1)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(2.0),
+                  child: SizedBox(
+                    width: 96.0,
+                    height: 3.0,
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      backgroundColor: palette.tintStrong,
+                      color: palette.accent,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
       title: Opacity(
         opacity: widget.episode.played ? 0.5 : 1.0,
@@ -135,18 +146,14 @@ class _ExpandableEpisodeTileState extends State<ExpandableEpisodeTile> {
           widget.episode.title!,
           overflow: TextOverflow.ellipsis,
           maxLines: 2,
-          softWrap: false,
-          style: textTheme.bodyMedium,
+          style: textTheme.bodyLarge,
         ),
       ),
       children: <Widget>[
         Align(
           alignment: Alignment.centerLeft,
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 4.0,
-            ),
+            padding: const EdgeInsets.fromLTRB(20.0, 0.0, 20.0, 4.0),
             child: Text(
               widget.episode.descriptionText!,
               overflow: TextOverflow.ellipsis,
@@ -160,17 +167,14 @@ class _ExpandableEpisodeTileState extends State<ExpandableEpisodeTile> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 8.0),
+          padding: const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 12.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Expanded(
                 child: TextButton(
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
-                  ),
+                  style: actionStyle,
                   onPressed: widget.episode.downloaded
                       ? () {
                           showPlatformDialog<void>(
@@ -213,16 +217,12 @@ class _ExpandableEpisodeTileState extends State<ExpandableEpisodeTile> {
                         semanticLabel: L.of(context)!.delete_episode_button_label,
                         size: 22,
                       ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 2.0),
-                      ),
+                      const SizedBox(height: 6.0),
                       ExcludeSemantics(
                         child: Text(
                           L.of(context)!.delete_label,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.normal,
-                          ),
+                          maxLines: 2,
                         ),
                       ),
                     ],
@@ -231,10 +231,7 @@ class _ExpandableEpisodeTileState extends State<ExpandableEpisodeTile> {
               ),
               Expanded(
                 child: TextButton(
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0.0)),
-                  ),
+                  style: actionStyle,
                   onPressed: widget.playing
                       ? null
                       : () {
@@ -253,16 +250,12 @@ class _ExpandableEpisodeTileState extends State<ExpandableEpisodeTile> {
                             : L.of(context)!.semantics_add_to_queue,
                         size: 22,
                       ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 2.0),
-                      ),
+                      const SizedBox(height: 6.0),
                       ExcludeSemantics(
                         child: Text(
                           widget.queued ? L.of(context)!.queue_remove_label : L.of(context)!.queue_add_label,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.normal,
-                          ),
+                          maxLines: 2,
                         ),
                       ),
                     ],
@@ -271,10 +264,7 @@ class _ExpandableEpisodeTileState extends State<ExpandableEpisodeTile> {
               ),
               Expanded(
                 child: TextButton(
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0.0)),
-                  ),
+                  style: actionStyle,
                   onPressed: () {
                     episodeBloc.togglePlayed(widget.episode);
                   },
@@ -286,15 +276,11 @@ class _ExpandableEpisodeTileState extends State<ExpandableEpisodeTile> {
                         widget.episode.played ? Icons.unpublished_outlined : Icons.check_circle_outline,
                         size: 22,
                       ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 2.0),
-                      ),
+                      const SizedBox(height: 6.0),
                       Text(
                         widget.episode.played ? L.of(context)!.mark_unplayed_label : L.of(context)!.mark_played_label,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.normal,
-                        ),
+                        maxLines: 2,
                       ),
                     ],
                   ),
@@ -302,10 +288,7 @@ class _ExpandableEpisodeTileState extends State<ExpandableEpisodeTile> {
               ),
               Expanded(
                 child: TextButton(
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0.0)),
-                  ),
+                  style: actionStyle,
                   onPressed: () {
                     showModalBottomSheet<void>(
                         barrierLabel: L.of(context)!.scrim_episode_details_selector,
@@ -332,15 +315,11 @@ class _ExpandableEpisodeTileState extends State<ExpandableEpisodeTile> {
                         Icons.unfold_more_outlined,
                         size: 22,
                       ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 2.0),
-                      ),
+                      const SizedBox(height: 6.0),
                       Text(
                         L.of(context)!.more_label,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.normal,
-                        ),
+                        maxLines: 2,
                       ),
                     ],
                   ),
@@ -388,11 +367,14 @@ class EpisodeTransportControls extends StatelessWidget {
       ));
     }
 
-    return SizedBox(
-      width: (buttons.length * 48.0),
-      child: Row(
-        children: <Widget>[...buttons],
-      ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        for (var i = 0; i < buttons.length; i++) ...[
+          if (i > 0) const SizedBox(width: 4.0),
+          buttons[i],
+        ],
+      ],
     );
   }
 }

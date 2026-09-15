@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 
@@ -21,6 +20,6 @@ class ActionText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Platform.isAndroid ? Text(text.toUpperCase()) : Text(text);
+    return Text(text);
   }
 }

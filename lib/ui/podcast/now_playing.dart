@@ -207,7 +207,7 @@ class NowPlayingEpisode extends StatelessWidget {
     return OrientationBuilder(
       builder: (context, _) {
         return Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.fromLTRB(24.0, 8.0, 24.0, 8.0),
           child: orientation == Orientation.portrait || size.width >= 1000
               ? Column(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -222,7 +222,7 @@ class NowPlayingEpisode extends StatelessWidget {
                           width: size.width * .75,
                           height: size.height * .75,
                           fit: BoxFit.contain,
-                          borderRadius: 6.0,
+                          borderRadius: 24.0,
                           placeholder: placeholderBuilder != null
                               ? placeholderBuilder.builder()(context)
                               : DelayedCircularProgressIndicator(),
@@ -257,7 +257,7 @@ class NowPlayingEpisode extends StatelessWidget {
                           height: 280,
                           width: 280,
                           fit: BoxFit.contain,
-                          borderRadius: 8.0,
+                          borderRadius: 20.0,
                           placeholder: placeholderBuilder != null
                               ? placeholderBuilder.builder()(context)
                               : DelayedCircularProgressIndicator(),

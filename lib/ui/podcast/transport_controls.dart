@@ -187,7 +187,7 @@ class DownloadControl extends StatelessWidget {
                     child: DownloadButton(
                       onPressed: () {},
                       title: episode.title!,
-                      icon: Icons.save_alt,
+                      icon: Icons.download_outlined,
                       percent: 0,
                       label: L.of(context)!.download_episode_button_label,
                     ),
@@ -198,7 +198,7 @@ class DownloadControl extends StatelessWidget {
                     child: DownloadButton(
                       onPressed: () {},
                       title: episode.title!,
-                      icon: Icons.check,
+                      icon: Icons.download_done,
                       percent: 0,
                       label: L.of(context)!.download_episode_button_label,
                     ),
@@ -211,7 +211,7 @@ class DownloadControl extends StatelessWidget {
               return DownloadButton(
                 onPressed: () {},
                 title: episode.title!,
-                icon: Icons.check,
+                icon: Icons.download_done,
                 percent: 0,
                 label: L.of(context)!.download_episode_button_label,
               );
@@ -219,7 +219,7 @@ class DownloadControl extends StatelessWidget {
               return DownloadButton(
                 onPressed: () => _showCancelDialog(context),
                 title: episode.title!,
-                icon: Icons.timer_outlined,
+                icon: Icons.hourglass_top_outlined,
                 percent: 0,
                 label: L.of(context)!.download_episode_button_label,
               );
@@ -227,7 +227,7 @@ class DownloadControl extends StatelessWidget {
               return DownloadButton(
                 onPressed: () => _showCancelDialog(context),
                 title: episode.title!,
-                icon: Icons.timer_outlined,
+                icon: Icons.hourglass_top_outlined,
                 percent: episode.downloadPercentage!,
                 label: L.of(context)!.download_episode_button_label,
               );
@@ -236,7 +236,7 @@ class DownloadControl extends StatelessWidget {
             return DownloadButton(
               onPressed: () => podcastBloc.downloadEpisode(episode),
               title: episode.title!,
-              icon: Icons.save_alt,
+              icon: Icons.download_outlined,
               percent: 0,
               label: L.of(context)!.download_episode_button_label,
             );

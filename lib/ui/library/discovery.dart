@@ -6,6 +6,7 @@ import 'package:anytime/bloc/podcast/podcast_bloc.dart';
 import 'package:anytime/core/meditation_catalog.dart';
 import 'package:anytime/entities/podcast.dart';
 import 'package:anytime/ui/podcast/podcast_details.dart';
+import 'package:anytime/ui/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sliver_tools/sliver_tools.dart';
@@ -20,7 +21,7 @@ class Discovery extends StatelessWidget {
     return MultiSliver(
       children: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          padding: const EdgeInsets.only(top: 4.0, bottom: 24.0),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
               (BuildContext context, int index) {
@@ -44,57 +45,58 @@ class _CatalogTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = Palette.of(context);
 
-    return Card(
-      color: theme.cardColor,
-      elevation: 1.0,
-      margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        leading: CircleAvatar(
-          backgroundColor: theme.primaryColor.withOpacity(0.15),
-          child: Icon(
-            _iconForFeed(feed.feedUrl),
-            color: theme.primaryColor,
+    return InkWell(
+      onTap: () => _open(context),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: palette.line)),
           ),
-        ),
-        title: Text(
-          feed.displayName,
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        trailing: Icon(
-          Icons.chevron_right,
-          color: theme.primaryColor,
-        ),
-        onTap: () async {
-          final podcastBloc = Provider.of<PodcastBloc>(context, listen: false);
-
-          // Look up the local subscription first (works offline).
-          // The guid stored in Sembast is the feed URL.
-          var podcast = await podcastBloc.podcastService.repository
-              .findPodcastByGuid(feed.feedUrl);
-
-          // Fall back to a network fetch if not yet subscribed.
-          podcast ??= Podcast.fromUrl(url: feed.feedUrl);
-
-          if (context.mounted) {
-            Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                settings: const RouteSettings(name: 'podcastdetails'),
-                builder: (context) => PodcastDetails(
-                  podcast!,
-                  podcastBloc,
+          padding: const EdgeInsets.symmetric(vertical: 18.0),
+          child: Row(
+            children: [
+              Container(
+                width: 44.0,
+                height: 44.0,
+                decoration: BoxDecoration(color: palette.tint, shape: BoxShape.circle),
+                child: Icon(_iconForFeed(feed.feedUrl), color: palette.inkSoft, size: 22.0),
+              ),
+              const SizedBox(width: 18.0),
+              Expanded(
+                child: Text(
+                  feed.displayName,
+                  style: theme.textTheme.titleMedium,
                 ),
               ),
-            );
-          }
-        },
+            ],
+          ),
+        ),
       ),
     );
+  }
+
+  Future<void> _open(BuildContext context) async {
+    final podcastBloc = Provider.of<PodcastBloc>(context, listen: false);
+
+    // Look up the local subscription first (works offline).
+    // The guid stored in Sembast is the feed URL.
+    var podcast = await podcastBloc.podcastService.repository.findPodcastByGuid(feed.feedUrl);
+
+    // Fall back to a network fetch if not yet subscribed.
+    podcast ??= Podcast.fromUrl(url: feed.feedUrl);
+
+    if (context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute<void>(
+          settings: const RouteSettings(name: 'podcastdetails'),
+          builder: (context) => PodcastDetails(podcast!, podcastBloc),
+        ),
+      );
+    }
   }
 
   IconData _iconForFeed(String url) {

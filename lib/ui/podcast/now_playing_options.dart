@@ -29,7 +29,7 @@ import 'package:provider/provider.dart';
 ///
 class NowPlayingOptionsSelector extends StatefulWidget {
   final double? scrollPos;
-  static const baseSize = 68.0;
+  static const baseSize = 76.0;
 
   const NowPlayingOptionsSelector({super.key, this.scrollPos});
 
@@ -76,8 +76,8 @@ class _NowPlayingOptionsSelectorState extends State<NowPlayingOptionsSelector> {
                     color: theme.secondaryHeaderColor,
                     shape: RoundedRectangleBorder(
                       side: BorderSide(
-                        color: theme.highlightColor,
-                        width: 0.0,
+                        color: theme.dividerColor,
+                        width: 1.0,
                       ),
                       borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(18.0),
@@ -118,7 +118,7 @@ class _NowPlayingOptionsSelectorState extends State<NowPlayingOptionsSelector> {
                               bottom: draggableController != null &&
                                       (!draggableController!.isAttached || draggableController!.size <= minSize)
                                   ? BorderSide.none
-                                  : BorderSide(color: Colors.grey[800]!, width: 1.0),
+                                  : BorderSide(color: theme.dividerColor, width: 1.0),
                             ),
                           ),
                           child: StreamBuilder<QueueState>(
@@ -149,7 +149,7 @@ class _NowPlayingOptionsSelectorState extends State<NowPlayingOptionsSelector> {
                                     Padding(
                                       padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
                                       child: Text(
-                                        L.of(context)!.up_next_queue_label.toUpperCase(),
+                                        L.of(context)!.up_next_queue_label,
                                         style: theme.textTheme.labelLarge,
                                       ),
                                     ),
@@ -161,11 +161,11 @@ class _NowPlayingOptionsSelectorState extends State<NowPlayingOptionsSelector> {
                                               snapshot.data?.playing != null &&
                                               snapshot.data!.playing!.hasTranscripts
                                           ? Text(
-                                              L.of(context)!.transcript_label.toUpperCase(),
+                                              L.of(context)!.transcript_label,
                                               style: theme.textTheme.labelLarge,
                                             )
                                           : Text(
-                                              L.of(context)!.transcript_label.toUpperCase(),
+                                              L.of(context)!.transcript_label,
                                               style: theme.textTheme.labelLarge!.copyWith(color: theme.disabledColor),
                                             ),
                                     ),
@@ -230,7 +230,7 @@ class NowPlayingOptionsScaffold extends StatelessWidget {
 /// Currently these options are Up Next & Transcript.
 class NowPlayingOptionsSelectorWide extends StatefulWidget {
   final double? scrollPos;
-  static const baseSize = 68.0;
+  static const baseSize = 76.0;
 
   const NowPlayingOptionsSelectorWide({super.key, this.scrollPos});
 
@@ -267,7 +267,7 @@ class _NowPlayingOptionsSelectorWideState extends State<NowPlayingOptionsSelecto
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.0),
                       border: Border(
-                        bottom: BorderSide(color: Colors.grey[800]!, width: 1.0),
+                        bottom: BorderSide(color: theme.dividerColor, width: 1.0),
                       ),
                     ),
                     child: StreamBuilder<QueueState>(
@@ -280,7 +280,7 @@ class _NowPlayingOptionsSelectorWideState extends State<NowPlayingOptionsSelecto
                               Padding(
                                 padding: const EdgeInsets.only(top: 16.0, bottom: 16.0),
                                 child: Text(
-                                  L.of(context)!.up_next_queue_label.toUpperCase(),
+                                  L.of(context)!.up_next_queue_label,
                                   style: theme.textTheme.labelLarge,
                                 ),
                               ),
@@ -290,11 +290,11 @@ class _NowPlayingOptionsSelectorWideState extends State<NowPlayingOptionsSelecto
                                         snapshot.data?.playing != null &&
                                         snapshot.data!.playing!.hasTranscripts
                                     ? Text(
-                                        L.of(context)!.transcript_label.toUpperCase(),
+                                        L.of(context)!.transcript_label,
                                         style: theme.textTheme.labelLarge,
                                       )
                                     : Text(
-                                        L.of(context)!.transcript_label.toUpperCase(),
+                                        L.of(context)!.transcript_label,
                                         style: theme.textTheme.labelLarge!.copyWith(color: theme.disabledColor),
                                       ),
                               ),

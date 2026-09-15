@@ -11,7 +11,7 @@ class SettingsDividerLabel extends StatelessWidget {
   const SettingsDividerLabel({
     super.key,
     required this.label,
-    this.padding = const EdgeInsets.fromLTRB(16.0, 24.0, 0.0, 0.0),
+    this.padding = const EdgeInsets.fromLTRB(20.0, 28.0, 20.0, 4.0),
   });
 
   @override
@@ -21,10 +21,10 @@ class SettingsDividerLabel extends StatelessWidget {
       child: Semantics(
         header: true,
         child: Text(
-          label,
-          style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                fontSize: 12.0,
-                color: Theme.of(context).primaryColor,
+          // The section strings are shouted in every locale; the design uses sentence case.
+          label.isEmpty ? label : label[0] + label.substring(1).toLowerCase(),
+          style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
         ),
       ),

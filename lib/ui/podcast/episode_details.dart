@@ -60,6 +60,9 @@ class _EpisodeDetailsState extends State<EpisodeDetails> {
               children: [
                 ExpansionTile(
                     key: const Key('episodemoreinfo'),
+                    tilePadding: const EdgeInsets.fromLTRB(20.0, 8.0, 20.0, 8.0),
+                    shape: const Border(),
+                    collapsedShape: const Border(),
                     trailing: PlayControl(
                       episode: episode,
                     ),
@@ -73,8 +76,7 @@ class _EpisodeDetailsState extends State<EpisodeDetails> {
                       episode.title!,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 2,
-                      softWrap: false,
-                      style: theme.textTheme.bodyMedium,
+                      style: theme.textTheme.bodyLarge,
                     )),
                 const Divider(),
                 EpisodeToolBar(
@@ -82,7 +84,7 @@ class _EpisodeDetailsState extends State<EpisodeDetails> {
                 ),
                 const Divider(),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+                  padding: const EdgeInsets.fromLTRB(20.0, 8.0, 20.0, 12.0),
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -103,10 +105,7 @@ class _EpisodeDetailsState extends State<EpisodeDetails> {
                     ),
                   ),
                 Padding(
-                  padding: const EdgeInsets.only(
-                    left: 8.0,
-                    right: 8.0,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
                   child: PodcastHtml(content: episode.content ?? episode.description!),
                 )
               ],
