@@ -7,8 +7,6 @@ import 'dart:async';
 import 'package:anytime/bloc/podcast/audio_bloc.dart';
 import 'package:anytime/l10n/L.dart';
 import 'package:anytime/services/audio/audio_player_service.dart';
-import 'package:anytime/ui/widgets/sleep_selector.dart';
-import 'package:anytime/ui/widgets/speed_selector.dart';
 import 'package:anytime/ui/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -38,10 +36,9 @@ class _PlayerTransportControlsState extends State<PlayerTransportControls> {
           builder: (context, snapshot) {
             return Row(
               crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.max,
               children: <Widget>[
-                const SleepSelectorWidget(),
                 IconButton(
                   onPressed: () {
                     return snapshot.data == AudioState.buffering ? null : _rewind(audioBloc);
@@ -53,7 +50,9 @@ class _PlayerTransportControlsState extends State<PlayerTransportControls> {
                     size: 48.0,
                   ),
                 ),
+                const SizedBox(width: 28.0),
                 AnimatedPlayButton(audioState: snapshot.data!),
+                const SizedBox(width: 28.0),
                 IconButton(
                   onPressed: () {
                     return snapshot.data == AudioState.buffering ? null : _fastforward(audioBloc);
@@ -65,7 +64,6 @@ class _PlayerTransportControlsState extends State<PlayerTransportControls> {
                     size: 48.0,
                   ),
                 ),
-                const SpeedSelectorWidget(),
               ],
             );
           }),

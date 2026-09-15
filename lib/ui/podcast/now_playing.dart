@@ -8,17 +8,11 @@ import 'package:anytime/bloc/podcast/audio_bloc.dart';
 import 'package:anytime/entities/episode.dart';
 import 'package:anytime/l10n/L.dart';
 import 'package:anytime/services/audio/audio_player_service.dart';
-import 'package:anytime/ui/podcast/chapter_selector.dart';
-import 'package:anytime/ui/podcast/dot_decoration.dart';
-import 'package:anytime/ui/podcast/now_playing_floating_player.dart';
-import 'package:anytime/ui/podcast/now_playing_options.dart';
-import 'package:anytime/ui/podcast/person_avatar.dart';
 import 'package:anytime/ui/podcast/playback_error_listener.dart';
 import 'package:anytime/ui/podcast/player_position_controls.dart';
 import 'package:anytime/ui/podcast/player_transport_controls.dart';
 import 'package:anytime/ui/widgets/delayed_progress_indicator.dart';
 import 'package:anytime/ui/widgets/placeholder_builder.dart';
-import 'package:anytime/ui/widgets/podcast_html.dart';
 import 'package:anytime/ui/widgets/podcast_image.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -49,8 +43,6 @@ class NowPlaying extends StatefulWidget {
 class _NowPlayingState extends State<NowPlaying> with WidgetsBindingObserver {
   late StreamSubscription<AudioState> playingStateSubscription;
   var textGroup = AutoSizeGroup();
-  double scrollPos = 0.0;
-  double opacity = 0.0;
 
   @override
   void initState() {
@@ -81,18 +73,13 @@ class _NowPlayingState extends State<NowPlaying> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  bool isMobilePortrait(BuildContext context) {
-    final orientation = MediaQuery.of(context).orientation;
-    final width = MediaQuery.of(context).size.width;
-
-    return (orientation == Orientation.portrait || width <= 1000);
-  }
-
+  /// The player is one screen: the recording, its title, and the transport.
+  /// No tabs, no queue, no notes — this app plays one recording at a time.
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final audioBloc = Provider.of<AudioBloc>(context, listen: false);
     final playerBuilder = PlayerControlsBuilder.of(context);
-    final orientation = MediaQuery.of(context).orientation;
 
     return Semantics(
       header: false,
@@ -101,80 +88,54 @@ class _NowPlayingState extends State<NowPlaying> with WidgetsBindingObserver {
       child: StreamBuilder<Episode?>(
           stream: audioBloc.nowPlaying,
           builder: (context, snapshot) {
-            if (!snapshot.hasData) {
+            if (!snapshot.hasData || snapshot.data == null) {
               return Container();
             }
 
-            var duration = snapshot.data == null ? 0 : snapshot.data!.duration;
-            final WidgetBuilder? transportBuilder = playerBuilder?.builder(duration);
+            final episode = snapshot.data!;
+            final WidgetBuilder? transportBuilder = playerBuilder?.builder(episode.duration);
 
-            return isMobilePortrait(context)
-                ? NotificationListener<DraggableScrollableNotification>(
-                    onNotification: (notification) {
-                      setState(() {
-                        if (notification.extent > (notification.minExtent)) {
-                          opacity = 1 - (notification.maxExtent - notification.extent);
-                          scrollPos = 1.0;
-                        } else {
-                          opacity = 0.0;
-                          scrollPos = 0.0;
-                        }
-                      });
-
-                      return true;
-                    },
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        // We need to hide the main player when the floating player is visible to prevent
-                        // screen readers from reading both parts of the stack.
-                        Visibility(
-                          visible: opacity < 1,
-                          child: NowPlayingTabs(
-                            episode: snapshot.data!,
-                            transportBuilder: transportBuilder,
-                          ),
-                        ),
-                        SizedBox.expand(
-                            child: SafeArea(
-                          child: Column(
-                            children: [
-                              /// Sized boxes without a child are 'invisible' so they do not prevent taps below
-                              /// the stack but are still present in the layout. We have a sized box here to stop
-                              /// the draggable panel from jumping as you start to pull it up. I am really looking
-                              /// forward to the Dart team fixing the nested scroll issues with [DraggableScrollableSheet]
-                              SizedBox(
-                                height: 64.0,
-                                child: scrollPos == 1
-                                    ? Opacity(
-                                        opacity: opacity,
-                                        child: const FloatingPlayer(),
-                                      )
-                                    : null,
-                              ),
-                              if (orientation == Orientation.portrait)
-                                const Expanded(
-                                  child: NowPlayingOptionsSelector(),
-                                ),
-                            ],
-                          ),
-                        )),
-                      ],
+            return AnnotatedRegion<SystemUiOverlayStyle>(
+              value: theme.appBarTheme.systemOverlayStyle!,
+              child: Scaffold(
+                appBar: AppBar(
+                  backgroundColor: theme.scaffoldBackgroundColor,
+                  elevation: 0.0,
+                  leading: IconButton(
+                    tooltip: L.of(context)!.minimise_player_window_button_label,
+                    icon: Icon(
+                      Icons.keyboard_arrow_down,
+                      semanticLabel: L.of(context)!.minimise_player_window_button_label,
                     ),
-                  )
-                : Row(
-                    mainAxisSize: MainAxisSize.max,
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  flexibleSpace: const PlaybackErrorListener(child: SizedBox.shrink()),
+                ),
+                body: SafeArea(
+                  top: false,
+                  child: Column(
                     children: [
                       Expanded(
-                        flex: 1,
-                        child: NowPlayingTabs(episode: snapshot.data!, transportBuilder: transportBuilder),
+                        child: NowPlayingEpisode(
+                          imageUrl: episode.positionalImageUrl,
+                          episode: episode,
+                          textGroup: textGroup,
+                        ),
                       ),
-                      const Expanded(
-                        flex: 1,
-                        child: NowPlayingOptionsSelectorWide(),
-                      ),
+                      transportBuilder != null
+                          ? transportBuilder(context)
+                          : const Padding(
+                              padding: EdgeInsets.only(bottom: 24.0),
+                              child: SizedBox(
+                                height: 148.0,
+                                child: NowPlayingTransport(),
+                              ),
+                            ),
                     ],
-                  );
+                  ),
+                ),
+              ),
+            );
           }),
     );
   }
@@ -388,272 +349,6 @@ class NowPlayingEpisodeDetails extends StatelessWidget {
     } else {
       throw 'Could not launch chapter link: $url';
     }
-  }
-}
-
-/// This widget handles the displaying of the episode show notes.
-///
-/// This consists of title, show notes and person details
-/// (where available).
-class NowPlayingShowNotes extends StatelessWidget {
-  final Episode? episode;
-
-  const NowPlayingShowNotes({
-    super.key,
-    required this.episode,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return SizedBox.expand(
-      child: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: Column(
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 16.0,
-                  right: 16.0,
-                  bottom: 16.0,
-                ),
-                child: Text(
-                  episode!.title!,
-                  style: theme.textTheme.titleLarge!.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-              ),
-            ),
-            if (episode!.persons.isNotEmpty)
-              SizedBox(
-                height: 120.0,
-                child: ListView.builder(
-                  itemCount: episode!.persons.length,
-                  scrollDirection: Axis.horizontal,
-                  itemBuilder: (BuildContext context, int index) {
-                    return PersonAvatar(person: episode!.persons[index]);
-                  },
-                ),
-              ),
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 8.0,
-                left: 8.0,
-                right: 8.0,
-              ),
-              child: PodcastHtml(content: episode?.content ?? episode?.description ?? ''),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Widget for rendering main episode tabs.
-///
-/// This will be episode details and show notes. If the episode supports chapters
-/// this will be included also. This is the parent widget. The tabs are
-/// rendered via [EpisodeTabBar] and the tab contents via. [EpisodeTabBarView].
-class NowPlayingTabs extends StatelessWidget {
-  const NowPlayingTabs({
-    super.key,
-    required this.transportBuilder,
-    required this.episode,
-  });
-
-  final WidgetBuilder? transportBuilder;
-  final Episode episode;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final orientation = MediaQuery.of(context).orientation;
-
-    return DefaultTabController(
-        length: episode.hasChapters ? 3 : 2,
-        initialIndex: episode.hasChapters ? 1 : 0,
-        child: AnnotatedRegion<SystemUiOverlayStyle>(
-          value: theme
-              .appBarTheme
-              .systemOverlayStyle!
-              .copyWith(systemNavigationBarColor: theme.secondaryHeaderColor),
-          child: Scaffold(
-            appBar: AppBar(
-              backgroundColor: theme.scaffoldBackgroundColor,
-              elevation: 0.0,
-              leading: IconButton(
-                tooltip: L.of(context)!.minimise_player_window_button_label,
-                icon: Icon(
-                  Icons.keyboard_arrow_down,
-                  color: theme.primaryIconTheme.color,
-                  semanticLabel: L.of(context)!.minimise_player_window_button_label,
-                ),
-                onPressed: () => {
-                  Navigator.pop(context),
-                },
-              ),
-              flexibleSpace: PlaybackErrorListener(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    EpisodeTabBar(
-                      chapters: episode.hasChapters,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            body: Column(
-              children: [
-                Expanded(
-                  flex: 5,
-                  child: EpisodeTabBarView(
-                    episode: episode,
-                    chapters: episode.hasChapters,
-                  ),
-                ),
-                transportBuilder != null
-                    ? transportBuilder!(context)
-                    : const SizedBox(
-                        height: 148.0,
-                        child: NowPlayingTransport(),
-                      ),
-                if (orientation == Orientation.portrait)
-                  const Expanded(
-                    flex: 1,
-                    child: NowPlayingOptionsScaffold(),
-                  ),
-              ],
-            ),
-          ),
-        ));
-  }
-}
-
-/// This class is responsible for rendering the tab selection at the top of the screen.
-///
-/// It displays two or three tabs depending upon whether the current episode supports
-/// (and contains) chapters.
-class EpisodeTabBar extends StatefulWidget {
-  final bool chapters;
-
-  const EpisodeTabBar({
-    super.key,
-    this.chapters = false,
-  });
-
-  @override
-  State<EpisodeTabBar> createState() => _EpisodeTabBarState();
-}
-
-class _EpisodeTabBarState extends State<EpisodeTabBar> {
-  late AudioBloc audioBloc;
-  StreamSubscription<Episode?>? episodeSubscription;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return TabBar(
-      isScrollable: true,
-      indicatorSize: TabBarIndicatorSize.tab,
-      indicator: DotDecoration(colour: theme.primaryColor),
-      tabs: [
-        if (widget.chapters)
-          Tab(
-            child: Align(
-              alignment: Alignment.center,
-              child: Text(L.of(context)!.chapters_label),
-            ),
-          ),
-        Tab(
-          child: Align(
-            alignment: Alignment.center,
-            child: Text(L.of(context)!.episode_label),
-          ),
-        ),
-        Tab(
-          child: Align(
-            alignment: Alignment.center,
-            child: Text(L.of(context)!.notes_label),
-          ),
-        ),
-      ],
-    );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    Episode? previousEpisode;
-
-    audioBloc = Provider.of<AudioBloc>(context, listen: false);
-
-    /// The number of tabs available depends upon whether the episode has chapters or not.
-    /// To ensure that we always start the episode on the main playing tab, we sit and list
-    /// for episode changes and update the tab index accordingly.
-    episodeSubscription = audioBloc.nowPlaying?.listen((Episode? episode) {
-      if (episode != previousEpisode) {
-        final index = (episode?.hasChapters ?? false) ? 1 : 0;
-        DefaultTabController.of(context).animateTo(index, duration: Duration.zero);
-      }
-
-      previousEpisode = episode;
-    });
-  }
-
-  @override
-  void dispose() {
-    episodeSubscription?.cancel();
-    super.dispose();
-  }
-}
-
-/// This class is responsible for rendering the tab bodies.
-///
-/// This includes the chapter selection view (if the episode supports chapters),
-/// the episode details (image and description) and the show notes view.
-class EpisodeTabBarView extends StatelessWidget {
-  final Episode? episode;
-  final AutoSizeGroup? textGroup;
-  final bool chapters;
-
-  const EpisodeTabBarView({
-    super.key,
-    this.episode,
-    this.textGroup,
-    this.chapters = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final audioBloc = Provider.of<AudioBloc>(context);
-
-    return TabBarView(
-      children: [
-        if (chapters)
-          ChapterSelector(
-            episode: episode!,
-          ),
-        StreamBuilder<Episode?>(
-            stream: audioBloc.nowPlaying,
-            builder: (context, snapshot) {
-              final e = snapshot.hasData ? snapshot.data! : episode!;
-
-              return NowPlayingEpisode(
-                episode: e,
-                imageUrl: e.positionalImageUrl,
-                textGroup: textGroup,
-              );
-            }),
-        NowPlayingShowNotes(episode: episode),
-      ],
-    );
   }
 }
 
