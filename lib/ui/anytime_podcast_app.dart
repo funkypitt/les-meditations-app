@@ -229,6 +229,8 @@ class AnytimeHomePage extends StatefulWidget {
 }
 
 class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingObserver {
+  late final AudioBloc _audioBloc;
+  late final PodcastBloc _podcastBloc;
   final log = Logger('_AnytimeHomePageState');
   bool libraryRefreshing = false;
   Widget? library;
@@ -237,6 +239,9 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
   @override
   void initState() {
     super.initState();
+    // Captured here: dispose() must not look the providers up through the context.
+    _audioBloc = Provider.of<AudioBloc>(context, listen: false);
+    _podcastBloc = Provider.of<PodcastBloc>(context, listen: false);
 
     final audioBloc = Provider.of<AudioBloc>(context, listen: false);
     final podcastBloc = Provider.of<PodcastBloc>(context, listen: false);
@@ -295,8 +300,8 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
 
   @override
   void dispose() {
-    final audioBloc = Provider.of<AudioBloc>(context, listen: false);
-    final podcastBloc = Provider.of<PodcastBloc>(context, listen: false);
+    final audioBloc = _audioBloc;
+    final podcastBloc = _podcastBloc;
 
     audioBloc.transitionLifecycleState(LifecycleState.detach);
     podcastBloc.transitionLifecycleState(LifecycleState.detach);

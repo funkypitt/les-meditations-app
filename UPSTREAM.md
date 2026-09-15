@@ -65,6 +65,13 @@ Toute fusion automatique y échouera ; c'est attendu.
 - `lib/ui/library/opml_*.dart`, `lib/ui/search/search.dart`, `show_notes.dart` — simplifiés (catalogue fixe)
 - `test/unit/core/environment_test.dart`, `test/unit/services/settings_test.dart` — alignés sur ces choix
 
+## Captures pour les stores
+
+`tools/store-screenshots.sh all fr` génère les 3 formats (Play 1080×1920, iPhone 6,9" 1320×2868, iPad 13" 2064×2752)
+dans `store/screenshots/fr/<format>/` en redimensionnant l'émulateur et en parcourant l'app avec
+`integration_test/store_screenshots_test.dart` (PNG sans barre d'état, sans alpha). Les images sont ignorées par git ;
+le téléversement se fait à la main dans les consoles.
+
 ## Pièges connus
 
 - `.gitignore` exclut `*.png` : toute nouvelle image se commite avec `git add -f`.

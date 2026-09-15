@@ -99,6 +99,9 @@ class _MiniPlayerBuilderState extends State<_MiniPlayerBuilder> with SingleTicke
               context: context,
               routeSettings: const RouteSettings(name: 'nowplaying'),
               isScrollControlled: true,
+              // The player fills the screen on every device: no 640 dp cap, no rounded top.
+              constraints: const BoxConstraints(maxWidth: double.infinity),
+              shape: const RoundedRectangleBorder(),
               builder: (BuildContext modalContext) {
                 return Padding(
                   padding: EdgeInsets.only(top: padding.top),

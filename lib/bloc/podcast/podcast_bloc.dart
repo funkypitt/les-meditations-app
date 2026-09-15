@@ -145,7 +145,11 @@ class PodcastBloc extends Bloc {
     _podcastStream.close();
     _episodesStream.close();
     _podcastEvent.close();
-    MobileDownloadService.downloadProgress.close();
+    try {
+      MobileDownloadService.downloadProgress.close();
+    } on StateError {
+      // Still fed by an addStream: only happens when the whole app is torn down (tests).
+    }
     downloadService.dispose();
     super.dispose();
   }
