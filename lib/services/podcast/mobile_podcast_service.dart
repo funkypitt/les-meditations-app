@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 
@@ -14,6 +15,7 @@ import 'package:anytime/entities/funding.dart';
 import 'package:anytime/entities/person.dart';
 import 'package:anytime/entities/podcast.dart';
 import 'package:anytime/entities/transcript.dart';
+import 'package:anytime/services/podcast/mp3_duration.dart';
 import 'package:anytime/services/podcast/podcast_service.dart';
 import 'package:anytime/state/episode_state.dart';
 import 'package:anytime/state/library_state.dart';
@@ -147,6 +149,26 @@ class MobilePodcastService extends PodcastService {
   /// TODO: The complexity of this method is now too high - needs to be refactored.
   @override
   Future<Podcast?> loadPodcast({
+    required Podcast podcast,
+    bool highlightNewEpisodes = false,
+    bool ignoreCache = false,
+  }) async {
+    final loaded = await _loadPodcast(
+      podcast: podcast,
+      highlightNewEpisodes: highlightNewEpisodes,
+      ignoreCache: ignoreCache,
+    );
+
+    // The feeds carry no duration; work it out from the files in the background,
+    // whichever way the podcast was loaded (cache, local store or feed).
+    if (loaded != null && loaded.id != null) {
+      unawaited(_fillMissingDurations(loaded));
+    }
+
+    return loaded;
+  }
+
+  Future<Podcast?> _loadPodcast({
     required Podcast podcast,
     bool highlightNewEpisodes = false,
     bool ignoreCache = false,
@@ -496,9 +518,54 @@ class MobilePodcastService extends PodcastService {
     return pc;
   }
 
+  /// Podcasts whose episodes are being measured right now, by guid.
+  static final Set<String> _measuring = <String>{};
+
+  /// Fills [Episode.duration] for the episodes that have none by reading the
+  /// start of each audio file (see [Mp3Duration]). Runs one file at a time and
+  /// saves each result as it comes, so the rows update one after the other.
+  Future<void> _fillMissingDurations(Podcast podcast) async {
+    final key = podcast.guid ?? podcast.url;
+
+    if (_measuring.contains(key)) {
+      return;
+    }
+
+    final pending = podcast.episodes
+        .where((e) => e.id != null && e.duration == 0 && (e.contentUrl ?? '').isNotEmpty && !e.downloaded)
+        .toList();
+
+    if (pending.isEmpty) {
+      return;
+    }
+
+    _measuring.add(key);
+    _log.fine('Measuring ${pending.length} episode(s) of ${podcast.title}');
+
+    try {
+      for (final episode in pending) {
+        final seconds = await Mp3Duration.probe(episode.contentUrl!, lengthBytes: episode.length);
+
+        if (seconds != null && seconds > 0) {
+          episode.duration = seconds;
+          await repository.saveEpisode(episode, true);
+        }
+      }
+    } finally {
+      _measuring.remove(key);
+    }
+  }
+
   @override
-  Future<Podcast?> loadPodcastById({required int id}) {
-    return repository.findPodcastById(id);
+  Future<Podcast?> loadPodcastById({required int id}) async {
+    final podcast = await repository.findPodcastById(id);
+
+    // The details page loads from the local store first: measure from here too.
+    if (podcast != null) {
+      unawaited(_fillMissingDurations(podcast));
+    }
+
+    return podcast;
   }
 
   @override

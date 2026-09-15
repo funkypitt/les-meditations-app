@@ -57,7 +57,10 @@ Toute fusion automatique y échouera ; c'est attendu.
 - `lib/ui/settings/settings.dart`, `episode_refresh.dart`, `up_next_view.dart`, sélecteurs (`*_selector.dart`)
 
 **Comportement propre au fork**
-- `lib/services/podcast/mobile_podcast_service.dart` — lecture hors ligne depuis la base locale d'abord
+- `lib/services/podcast/mobile_podcast_service.dart` — lecture hors ligne depuis la base locale d'abord ;
+  mesure des durées manquantes en arrière-plan (`_fillMissingDurations`)
+- `lib/services/podcast/mp3_duration.dart` — durée d'un MP3 distant depuis ses premiers Ko (Xing/Info ou débit × taille),
+  car les flux n'ont pas d'`itunes:duration`
 - `lib/services/settings/mobile_settings_service.dart` — thème par défaut `system`
 - `lib/ui/library/opml_*.dart`, `lib/ui/search/search.dart`, `show_notes.dart` — simplifiés (catalogue fixe)
 - `test/unit/core/environment_test.dart`, `test/unit/services/settings_test.dart` — alignés sur ces choix

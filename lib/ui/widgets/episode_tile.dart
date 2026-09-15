@@ -2,21 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:anytime/bloc/podcast/episode_bloc.dart';
-import 'package:anytime/bloc/podcast/queue_bloc.dart';
 import 'package:anytime/entities/episode.dart';
 import 'package:anytime/l10n/L.dart';
-import 'package:anytime/state/queue_event_state.dart';
-import 'package:anytime/ui/podcast/episode_details.dart';
 import 'package:anytime/ui/podcast/transport_controls.dart';
 import 'package:anytime/ui/themes.dart';
-import 'package:anytime/ui/widgets/action_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:intl/intl.dart' show DateFormat;
-import 'package:provider/provider.dart';
 
-/// This class builds a tile for each episode in the podcast feed.
+/// One recording in a list: title, length, and on the right the offline switch
+/// and the play button. Nothing unfolds — this is an app for listening, not a
+/// podcast manager, so there is no queue, no "mark as played", no details sheet.
 class EpisodeTile extends StatelessWidget {
   final Episode episode;
   final bool download;
@@ -35,300 +30,61 @@ class EpisodeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Upstream swapped in a dialog-based tile when MediaQuery.accessibleNavigation was set. On Android the
-    // engine sets that flag as soon as any accessibility service (password manager, automation app,
-    // launcher...) reads the screen, and it stays set until the app is restarted, so users lost the play
-    // button for no reason. The expandable tile carries TalkBack labels, so it is used in every case.
-    return ExpandableEpisodeTile(
-      episode: episode,
-      download: download,
-      play: play,
-      playing: playing,
-      queued: queued,
-    );
-  }
-}
-
-/// An EpisodeTitle is built with an [ExpansionTile] widget and displays the episode's
-/// basic details, thumbnail and play button.
-///
-/// It can then be expanded to present addition information about the episode and further
-/// controls.
-///
-/// TODO: Replace [Opacity] with [Container] with a transparent colour.
-class ExpandableEpisodeTile extends StatefulWidget {
-  final Episode episode;
-  final bool download;
-  final bool play;
-  final bool playing;
-  final bool queued;
-
-  const ExpandableEpisodeTile({
-    super.key,
-    required this.episode,
-    required this.download,
-    required this.play,
-    this.playing = false,
-    this.queued = false,
-  });
-
-  @override
-  State<ExpandableEpisodeTile> createState() => _ExpandableEpisodeTileState();
-}
-
-class _ExpandableEpisodeTileState extends State<ExpandableEpisodeTile> {
-  bool expanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final textTheme = Theme.of(context).textTheme;
-    final episodeBloc = Provider.of<EpisodeBloc>(context);
-    final queueBloc = Provider.of<QueueBloc>(context);
-
     final palette = Palette.of(context);
-    final progress = widget.episode.percentagePlayed / 100;
-    final actionStyle = TextButton.styleFrom(
-      foregroundColor: palette.inkSoft,
-      disabledForegroundColor: palette.inkSoft.withValues(alpha: 0.35),
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      textStyle: textTheme.labelSmall,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-    );
+    final progress = episode.percentagePlayed / 100;
+    final opacity = episode.played ? 0.5 : 1.0;
 
-    return ExpansionTile(
-      tilePadding: const EdgeInsets.fromLTRB(20.0, 6.0, 12.0, 6.0),
-      childrenPadding: EdgeInsets.zero,
-      shape: const Border(),
-      collapsedShape: const Border(),
-      key: Key('PT${widget.episode.guid}'),
-      onExpansionChanged: (isExpanded) {
-        setState(() {
-          expanded = isExpanded;
-        });
-      },
-      trailing: Opacity(
-        opacity: widget.episode.played ? 0.5 : 1.0,
-        child: EpisodeTransportControls(
-          episode: widget.episode,
-          download: widget.download,
-          play: widget.play,
-        ),
-      ),
-      subtitle: Opacity(
-        opacity: widget.episode.played ? 0.5 : 1.0,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            EpisodeSubtitle(widget.episode),
-            if (progress > 0 && progress < 1)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(2.0),
-                  child: SizedBox(
-                    width: 96.0,
-                    height: 3.0,
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      backgroundColor: palette.tintStrong,
-                      color: palette.accent,
-                    ),
+    return Padding(
+      key: Key('PT${episode.guid}'),
+      padding: const EdgeInsets.fromLTRB(20.0, 10.0, 12.0, 10.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Opacity(
+              opacity: opacity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    episode.title!,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                    style: textTheme.bodyLarge,
                   ),
-                ),
-              ),
-          ],
-        ),
-      ),
-      title: Opacity(
-        opacity: widget.episode.played ? 0.5 : 1.0,
-        child: Text(
-          widget.episode.title!,
-          overflow: TextOverflow.ellipsis,
-          maxLines: 2,
-          style: textTheme.bodyLarge,
-        ),
-      ),
-      children: <Widget>[
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20.0, 0.0, 20.0, 4.0),
-            child: Text(
-              widget.episode.descriptionText!,
-              overflow: TextOverflow.ellipsis,
-              softWrap: false,
-              maxLines: 5,
-              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                    fontSize: 14,
-                    fontWeight: FontWeight.normal,
-                  ),
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 12.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Expanded(
-                child: TextButton(
-                  style: actionStyle,
-                  onPressed: widget.episode.downloaded
-                      ? () {
-                          showPlatformDialog<void>(
-                            context: context,
-                            useRootNavigator: false,
-                            builder: (_) => BasicDialogAlert(
-                              title: Text(
-                                L.of(context)!.delete_episode_title,
-                              ),
-                              content: Text(L.of(context)!.delete_episode_confirmation),
-                              actions: <Widget>[
-                                BasicDialogAction(
-                                  title: ActionText(
-                                    L.of(context)!.cancel_button_label,
-                                  ),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                BasicDialogAction(
-                                  title: ActionText(
-                                    L.of(context)!.delete_button_label,
-                                  ),
-                                  iosIsDefaultAction: true,
-                                  iosIsDestructiveAction: true,
-                                  onPressed: () {
-                                    episodeBloc.deleteDownload(widget.episode);
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-                      : null,
-                  child: Column(
-                    children: <Widget>[
-                      Icon(
-                        Icons.delete_outline,
-                        semanticLabel: L.of(context)!.delete_episode_button_label,
-                        size: 22,
-                      ),
-                      const SizedBox(height: 6.0),
-                      ExcludeSemantics(
-                        child: Text(
-                          L.of(context)!.delete_label,
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Expanded(
-                child: TextButton(
-                  style: actionStyle,
-                  onPressed: widget.playing
-                      ? null
-                      : () {
-                          if (widget.queued) {
-                            queueBloc.queueEvent(QueueRemoveEvent(episode: widget.episode));
-                          } else {
-                            queueBloc.queueEvent(QueueAddEvent(episode: widget.episode));
-                          }
-                        },
-                  child: Column(
-                    children: <Widget>[
-                      Icon(
-                        widget.queued ? Icons.playlist_add_check_outlined : Icons.playlist_add_outlined,
-                        semanticLabel: widget.queued
-                            ? L.of(context)!.semantics_remove_from_queue
-                            : L.of(context)!.semantics_add_to_queue,
-                        size: 22,
-                      ),
-                      const SizedBox(height: 6.0),
-                      ExcludeSemantics(
-                        child: Text(
-                          widget.queued ? L.of(context)!.queue_remove_label : L.of(context)!.queue_add_label,
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Expanded(
-                child: TextButton(
-                  style: actionStyle,
-                  onPressed: () {
-                    episodeBloc.togglePlayed(widget.episode);
-                  },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Icon(
-                        widget.episode.played ? Icons.unpublished_outlined : Icons.check_circle_outline,
-                        size: 22,
-                      ),
-                      const SizedBox(height: 6.0),
-                      Text(
-                        widget.episode.played ? L.of(context)!.mark_unplayed_label : L.of(context)!.mark_played_label,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Expanded(
-                child: TextButton(
-                  style: actionStyle,
-                  onPressed: () {
-                    showModalBottomSheet<void>(
-                        barrierLabel: L.of(context)!.scrim_episode_details_selector,
-                        context: context,
-                        backgroundColor: theme.bottomAppBarTheme.color,
-                        isScrollControlled: true,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(10.0),
-                            topRight: Radius.circular(10.0),
+                  EpisodeSubtitle(episode),
+                  if (progress > 0 && progress < 1)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(2.0),
+                        child: SizedBox(
+                          width: 96.0,
+                          height: 3.0,
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            backgroundColor: palette.tintStrong,
+                            color: palette.accent,
                           ),
                         ),
-                        builder: (context) {
-                          return EpisodeDetails(
-                            episode: widget.episode,
-                          );
-                        });
-                  },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      const Icon(
-                        Icons.unfold_more_outlined,
-                        size: 22,
                       ),
-                      const SizedBox(height: 6.0),
-                      Text(
-                        L.of(context)!.more_label,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ],
+          const SizedBox(width: 12.0),
+          Opacity(
+            opacity: opacity,
+            child: EpisodeTransportControls(
+              episode: episode,
+              download: download,
+              play: play,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -393,63 +149,60 @@ class EpisodeSubtitle extends StatelessWidget {
                 .format(episode.publicationDate!),
         length = Duration(seconds: episode.duration);
 
+  /// Only the talks are dated content; the meditations are timeless and their
+  /// publication date is noise.
+  bool get _showDate => (episode.pguid ?? '').contains('causeries');
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    var timeRemaining = episode.timeRemaining;
-    var dateLabel = date;
-    var dateSemanticLabel = date;
+    final timeRemaining = episode.timeRemaining;
+    final parts = <String>[];
+    final semanticParts = <String>[];
 
-    String title;
-    String semanticTitle;
-
-    // If publication is within 7 days, give friendlier date format.
-    if (episode.publicationDate != null) {
+    if (_showDate && episode.publicationDate != null) {
+      var dateLabel = date;
+      var dateSemanticLabel = date;
       final now = DateTime.now();
-      final diff = now.difference(episode.publicationDate!);
 
-      if (diff.inDays < 7) {
+      // If publication is within 7 days, give friendlier date format.
+      if (now.difference(episode.publicationDate!).inDays < 7) {
         (dateLabel, dateSemanticLabel) = calculateTimeAgo(context, episode.publicationDate!, now);
       }
+
+      parts.add(dateLabel);
+      semanticParts.add(dateSemanticLabel);
     }
 
     if (length.inSeconds > 0) {
       if (length.inSeconds < 60) {
-        title = '$dateLabel • ${L.of(context)!.time_seconds(length.inSeconds)}';
-        semanticTitle = '$dateSemanticLabel, ${L.of(context)!.time_semantic_seconds(length.inSeconds)}';
+        parts.add(L.of(context)!.time_seconds(length.inSeconds));
+        semanticParts.add(L.of(context)!.time_semantic_seconds(length.inSeconds));
       } else {
-        title = '$dateLabel • ${L.of(context)!.time_minutes(length.inMinutes)}';
-        semanticTitle = '$dateSemanticLabel, ${L.of(context)!.time_semantic_minutes(length.inMinutes)}';
+        parts.add(L.of(context)!.time_minutes(length.inMinutes));
+        semanticParts.add(L.of(context)!.time_semantic_minutes(length.inMinutes));
       }
-    } else {
-      title = dateLabel;
-      semanticTitle = dateLabel;
     }
 
     if (timeRemaining.inSeconds > 0) {
       if (timeRemaining.inSeconds < 60) {
-        title = '$title / ${L.of(context)!.episode_time_second_remaining(timeRemaining.inSeconds.toString())}';
-        semanticTitle =
-            '$semanticTitle / ${L.of(context)!.episode_semantic_time_second_remaining(timeRemaining.inSeconds.toString())}';
+        parts.add(L.of(context)!.episode_time_second_remaining(timeRemaining.inSeconds.toString()));
+        semanticParts.add(L.of(context)!.episode_semantic_time_second_remaining(timeRemaining.inSeconds.toString()));
       } else {
-        title = '$title / ${L.of(context)!.episode_time_minute_remaining(timeRemaining.inMinutes.toString())}';
-        semanticTitle =
-            '$semanticTitle / ${L.of(context)!.episode_semantic_time_minute_remaining(timeRemaining.inMinutes.toString())}';
+        parts.add(L.of(context)!.episode_time_minute_remaining(timeRemaining.inMinutes.toString()));
+        semanticParts.add(L.of(context)!.episode_semantic_time_minute_remaining(timeRemaining.inMinutes.toString()));
       }
     }
 
-    if (episode.length > 0) {
-      final mb = (episode.length / (1024 * 1024)).toStringAsFixed(1);
-
-      title = '$title • $mb${L.of(context)!.label_megabytes_abbr}';
-      semanticTitle = '$semanticTitle, $mb ${L.of(context)!.label_megabytes}';
+    if (parts.isEmpty) {
+      return const SizedBox.shrink();
     }
 
     return Padding(
       padding: const EdgeInsets.only(top: 4.0),
       child: Text(
-        title,
-        semanticsLabel: semanticTitle,
+        parts.join(' · '),
+        semanticsLabel: semanticParts.join(', '),
         overflow: TextOverflow.ellipsis,
         softWrap: false,
         style: textTheme.bodySmall,

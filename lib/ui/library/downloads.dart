@@ -44,7 +44,7 @@ class _DownloadsState extends State<Downloads> {
           return PodcastEpisodeList(
             episodes: state.results,
             play: true,
-            download: false,
+            download: true,
             icon: Icons.cloud_download,
             emptyMessage: L.of(context)!.no_downloads_message,
           );

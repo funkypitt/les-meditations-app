@@ -209,11 +209,11 @@ class DownloadControl extends StatelessWidget {
 
             if (episode.downloadState == DownloadState.downloaded) {
               return DownloadButton(
-                onPressed: () {},
+                onPressed: () => _showRemoveDialog(context),
                 title: episode.title!,
                 icon: Icons.download_done,
                 percent: 0,
-                label: L.of(context)!.download_episode_button_label,
+                label: L.of(context)!.delete_episode_button_label,
               );
             } else if (episode.downloadState == DownloadState.queued) {
               return DownloadButton(
@@ -241,6 +241,34 @@ class DownloadControl extends StatelessWidget {
               label: L.of(context)!.download_episode_button_label,
             );
           }),
+    );
+  }
+
+  /// The offline copy goes; the recording itself stays available online.
+  Future<void> _showRemoveDialog(BuildContext context) {
+    final episodeBloc = Provider.of<EpisodeBloc>(context, listen: false);
+
+    return showPlatformDialog<void>(
+      context: context,
+      useRootNavigator: false,
+      builder: (_) => BasicDialogAlert(
+        title: Text(L.of(context)!.delete_episode_title),
+        content: Text(L.of(context)!.delete_episode_confirmation),
+        actions: <Widget>[
+          BasicDialogAction(
+            title: ActionText(L.of(context)!.cancel_button_label),
+            onPressed: () => Navigator.pop(context),
+          ),
+          BasicDialogAction(
+            title: ActionText(L.of(context)!.delete_button_label),
+            iosIsDefaultAction: true,
+            onPressed: () {
+              episodeBloc.deleteDownload(episode);
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
     );
   }
 
