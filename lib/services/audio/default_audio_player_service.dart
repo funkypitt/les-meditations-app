@@ -10,7 +10,6 @@ import 'package:anytime/core/utils.dart';
 import 'package:anytime/entities/chapter.dart';
 import 'package:anytime/entities/downloadable.dart';
 import 'package:anytime/entities/episode.dart';
-import 'package:anytime/entities/persistable.dart';
 import 'package:anytime/entities/podcast.dart';
 import 'package:anytime/entities/sleep.dart';
 import 'package:anytime/entities/transcript.dart';
@@ -112,8 +111,6 @@ class DefaultAudioPlayerService extends AudioPlayerService {
         androidNotificationIcon: 'drawable/ic_stat_name',
         androidNotificationOngoing: false,
         androidStopForegroundOnPause: true,
-        rewindInterval: Duration(seconds: 10),
-        fastForwardInterval: Duration(seconds: 30),
       ),
     ).then((value) {
       _audioHandler = value;
@@ -125,6 +122,15 @@ class DefaultAudioPlayerService extends AudioPlayerService {
 
   @override
   Future<void> pause() async => _audioHandler.pause();
+
+  /// Stop as this app means it: silence, back to the beginning, the recording
+  /// still loaded so the user can start it again from 00:00. Nothing is
+  /// unloaded and nothing is remembered.
+  @override
+  Future<void> reset() async {
+    await _audioHandler.customAction('reset');
+    await _onUpdatePosition();
+  }
 
   @override
   Future<void> play() {
@@ -399,20 +405,9 @@ class DefaultAudioPlayerService extends AudioPlayerService {
 
           }
         }
-      } else {
-        // Let's see if we have a persisted state
-        var ps = await PersistentState.fetchState();
-
-        if (ps.state == LastState.paused) {
-          _currentEpisode = await repository.findEpisodeById(ps.episodeId);
-          _currentEpisode!.position = ps.position;
-          _playingState.add(AudioState.pausing);
-
-          updateCurrentPosition(_currentEpisode);
-
-          _cold = true;
-        }
       }
+      // No persisted state is ever restored: a fresh launch starts with no
+      // recording loaded, and every recording starts from 00:00.
     } else {
       final playbackState = _audioHandler.playbackState.value;
       final basicState = playbackState.processingState;
@@ -422,7 +417,13 @@ class DefaultAudioPlayerService extends AudioPlayerService {
         /// We will have to assume we have stopped.
         _playingState.add(AudioState.stopped);
       } else if (basicState == AudioProcessingState.ready) {
-        _startPositionTicker();
+        if (playbackState.playing) {
+          _startPositionTicker();
+        } else {
+          // Paused for a long while: the next play starts over, show 00:00 now.
+          await _audioHandler.customAction('resetIfStale');
+          await _onUpdatePosition();
+        }
       }
     }
 
@@ -464,18 +465,10 @@ class DefaultAudioPlayerService extends AudioPlayerService {
   }
 
   Future<void> _persistState() async {
-    var currentPosition = _audioHandler.playbackState.value.position.inMilliseconds;
-
-    /// We only need to persist if we are paused.
-    if (_playingState.value == AudioState.pausing) {
-      await PersistentState.persistState(Persistable(
-        pguid: '',
-        episodeId: _currentEpisode!.id!,
-        position: currentPosition,
-        state: LastState.paused,
-      ));
-    }
+    // Nothing to persist: a paused recording is not restored on the next launch.
+    await PersistentState.clearState();
   }
+
 
   @override
   Future<void> trimSilence(bool trim) {
@@ -525,7 +518,8 @@ class DefaultAudioPlayerService extends AudioPlayerService {
       artUri: Uri.parse(episode.imageUrl!),
       duration: Duration(seconds: episode.duration),
       extras: <String, dynamic>{
-        'position': episode.position,
+        // A guided meditation always starts at the beginning: no stored position.
+        'position': 0,
         'downloaded': episode.downloaded,
         'speed': _playbackSpeed,
         'trim': _trimSilence,
@@ -616,13 +610,11 @@ class DefaultAudioPlayerService extends AudioPlayerService {
           await _audioHandler.customAction('queueend');
         }
       } else {
+        // End of the recording: silence, back to 00:00, recording kept so it
+        // can be started again from the mini player.
         _queue = <Episode>[];
-        _currentEpisode = null;
-        _playingState.add(AudioState.stopped);
-
-        _updateEpisodeState();
-
-        await _audioHandler.customAction('queueend');
+        await _audioHandler.customAction('reset');
+        await _onUpdatePosition();
       }
     } else {
       log.fine('Queue has ${_queue.length} episodes left');
@@ -721,17 +713,14 @@ class DefaultAudioPlayerService extends AudioPlayerService {
   /// podcast to continue playing where it left off if played at a later
   /// time.
   Future<void> _saveCurrentEpisodePosition({bool complete = false}) async {
+    // This app never remembers where a recording was left: the next listening
+    // starts at 00:00. Only the "played" flag is kept, and the stored position
+    // is pinned to zero so older installs lose theirs too.
     if (_currentEpisode != null) {
-      // The episode may have been updated elsewhere - re-fetch it.
-      var currentPosition = _audioHandler.playbackState.value.position.inMilliseconds;
-
       _currentEpisode = await repository.findEpisodeByGuid(_currentEpisode!.guid);
 
-      log.fine(
-          '_saveCurrentEpisodePosition(): Current position is $currentPosition - stored position is ${_currentEpisode!.position} complete is $complete');
-
-      if (currentPosition != _currentEpisode!.position) {
-        _currentEpisode!.position = complete ? 0 : currentPosition;
+      if (_currentEpisode != null && (_currentEpisode!.position != 0 || _currentEpisode!.played != complete)) {
+        _currentEpisode!.position = 0;
         _currentEpisode!.played = complete;
 
         _currentEpisode = await repository.saveEpisode(_currentEpisode!);
@@ -740,6 +729,7 @@ class DefaultAudioPlayerService extends AudioPlayerService {
       log.fine(' - Cannot save position as episode is null');
     }
   }
+
 
   /// Called when play starts. Each time we receive an event in the stream
   /// we check the current position of the episode from the audio service
@@ -878,8 +868,6 @@ class _DefaultAudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   final SettingsService settings;
   final PodcastService podcastService;
 
-  static const rewindMillis = 10001;
-  static const fastForwardMillis = 30000;
   static const audioGain = 0.8;
   bool _trimSilence = false;
 
@@ -888,17 +876,10 @@ class _DefaultAudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   late AudioPlayer _player;
   MediaItem? _currentItem;
 
-  static const MediaControl rewindControl = MediaControl(
-    androidIcon: 'drawable/ic_action_rewind_10',
-    label: 'Rewind',
-    action: MediaAction.rewind,
-  );
+  /// A pause longer than this is a new session: the next play starts at 00:00.
+  static const staleAfter = Duration(minutes: 20);
 
-  static const MediaControl fastforwardControl = MediaControl(
-    androidIcon: 'drawable/ic_action_fastforward_30',
-    label: 'Fastforward',
-    action: MediaAction.fastForward,
-  );
+  DateTime? _pausedAt;
 
   _DefaultAudioPlayerHandler({
     required this.repository,
@@ -950,9 +931,9 @@ class _DefaultAudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     _currentItem = mediaItem;
 
     var downloaded = mediaItem.extras!['downloaded'] as bool? ?? true;
-    var startPosition = mediaItem.extras!['position'] as int? ?? 0;
     var playbackSpeed = mediaItem.extras!['speed'] as double? ?? 0.0;
-    var start = startPosition > 0 ? Duration(milliseconds: startPosition) : Duration.zero;
+    // Always from the beginning, whatever an older install may have stored.
+    const start = Duration.zero;
     var boost = mediaItem.extras!['boost'] as bool? ?? true;
     // Commented out until just audio position bug is fixed
     // var trim = mediaItem.extras['trim'] as bool ?? true;
@@ -1017,57 +998,59 @@ class _DefaultAudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   Future<void> play() async {
     log.fine('play() triggered');
 
+    await _resetIfStale();
     await _player.play();
   }
 
   @override
   Future<void> pause() async {
-    log.fine('pause() triggered - saving position');
-    await _savePosition();
+    log.fine('pause() triggered');
+    _pausedAt ??= DateTime.now();
     await _player.pause();
   }
 
+  /// Stop from the notification, the lock screen or a headset: back to the
+  /// beginning, recording kept. Same meaning as the stop button in the app.
   @override
   Future<void> stop() async {
-    log.fine('stop() triggered - saving position');
-
-    await _player.stop();
-    await _savePosition();
-
-    await super.stop();
+    log.fine('stop() triggered - back to the beginning');
+    await _reset();
   }
 
-  @override
-  Future<void> fastForward() async {
-    var forwardPosition = _player.position.inMilliseconds;
-
-    await _player.seek(Duration(milliseconds: forwardPosition + fastForwardMillis));
+  /// Silence and back to 00:00, without unloading the recording. Pause first:
+  /// seeking a player that is still "playing" at the end would start it again.
+  Future<void> _reset() async {
+    await _player.pause();
+    await _player.seek(Duration.zero);
+    _pausedAt = null;
   }
 
+  Future<void> _resetIfStale() async {
+    final pausedAt = _pausedAt;
+    _pausedAt = null;
+
+    if (pausedAt != null && DateTime.now().difference(pausedAt) > staleAfter && _player.position > Duration.zero) {
+      log.fine('Paused since $pausedAt: starting over');
+      await _player.seek(Duration.zero);
+    }
+  }
+
+  // No skipping, from any source: earbuds double-click, car controls, watches.
   @override
-  Future<void> skipToNext() => fastForward();
+  Future<void> fastForward() async {}
 
   @override
-  Future<void> skipToPrevious() => rewind();
+  Future<void> rewind() async {}
+
+  @override
+  Future<void> skipToNext() async {}
+
+  @override
+  Future<void> skipToPrevious() async {}
 
   @override
   Future<void> seek(Duration position) async {
     return _player.seek(position);
-  }
-
-  @override
-  Future<void> rewind() async {
-    var rewindPosition = _player.position.inMilliseconds;
-
-    if (rewindPosition > 0) {
-      rewindPosition -= rewindMillis;
-
-      if (rewindPosition < 0) {
-        rewindPosition = 0;
-      }
-
-      await _player.seek(Duration(milliseconds: rewindPosition));
-    }
   }
 
   @override
@@ -1079,6 +1062,12 @@ class _DefaultAudioPlayerHandler extends BaseAudioHandler with SeekHandler {
       case 'boost':
         var t = extras!['value'] as bool?;
         return volumeBoost(t);
+      case 'reset':
+        await _reset();
+        break;
+      case 'resetIfStale':
+        await _resetIfStale();
+        break;
       case 'queueend':
         log.fine('Received custom action: queue end');
         await _player.stop();
@@ -1120,32 +1109,16 @@ class _DefaultAudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   PlaybackState _transformEvent(PlaybackEvent event) {
     log.fine('_transformEvent Sending state ${_player.processingState}');
 
-    // To enable skip next and previous for headphones on iOS we need the
-    // add the skipToNext & skipToPrevious controls; however, on Android
-    // we don't need to specify them and doing so adds the next and previous
-    // buttons to the notification shade which we do not want.
-    final systemActions = Platform.isIOS
-        ? const {
-            MediaAction.seek,
-            MediaAction.seekForward,
-            MediaAction.seekBackward,
-            MediaAction.skipToNext,
-            MediaAction.skipToPrevious,
-          }
-        : const {
-            MediaAction.seek,
-            MediaAction.seekForward,
-            MediaAction.seekBackward,
-          };
-
+    // Only play/pause and stop are offered to the lock screen, the
+    // notification and headsets: no seeking, no skipping. Skipping is exactly
+    // what a guided meditation must not invite.
     return PlaybackState(
       controls: [
-        rewindControl,
         if (_player.playing) MediaControl.pause else MediaControl.play,
-        fastforwardControl,
+        MediaControl.stop,
       ],
-      systemActions: systemActions,
-      androidCompactActionIndices: const [0, 1, 2],
+      systemActions: const {},
+      androidCompactActionIndices: const [0, 1],
       processingState: {
         ProcessingState.idle: _player.playing ? AudioProcessingState.ready : AudioProcessingState.idle,
         ProcessingState.loading: AudioProcessingState.loading,
@@ -1161,22 +1134,5 @@ class _DefaultAudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     );
   }
 
-  Future<void> _savePosition() async {
-    if (_currentItem != null) {
-      // The episode may have been updated elsewhere - re-fetch it.
-      var currentPosition = playbackState.value.position.inMilliseconds;
-      var storedEpisode = (await repository.findEpisodeByGuid(_currentItem!.extras!['eid'] as String))!;
 
-      log.fine(
-          '_savePosition(): Current position is $currentPosition - stored position is ${storedEpisode.position} on episode ${storedEpisode.title}');
-
-      if (currentPosition != storedEpisode.position) {
-        storedEpisode.position = currentPosition;
-
-        await repository.saveEpisode(storedEpisode);
-      }
-    } else {
-      log.fine(' - Cannot save position as episode is null');
-    }
-  }
 }

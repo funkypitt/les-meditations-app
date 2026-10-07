@@ -64,6 +64,9 @@ abstract class AudioPlayerService {
   /// Pause the current episode.
   Future<void> pause();
 
+  /// Silence and back to 00:00; the recording stays loaded.
+  Future<void> reset();
+
   /// Rewind the current episode by pre-set number of seconds.
   Future<void> rewind();
 

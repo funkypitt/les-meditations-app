@@ -5,12 +5,12 @@
 import 'package:anytime/entities/episode.dart';
 import 'package:anytime/l10n/L.dart';
 import 'package:anytime/ui/podcast/transport_controls.dart';
-import 'package:anytime/ui/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 /// One recording in a list: title, length, and on the right the offline switch
-/// and the play button. Nothing unfolds — this is an app for listening, not a
+/// and the play button. No progress and no dimming: nothing is remembered
+/// between sessions. Nothing unfolds — this is an app for listening, not a
 /// podcast manager, so there is no queue, no "mark as played", no details sheet.
 class EpisodeTile extends StatelessWidget {
   final Episode episode;
@@ -31,9 +31,6 @@ class EpisodeTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final palette = Palette.of(context);
-    final progress = episode.percentagePlayed / 100;
-    final opacity = episode.played ? 0.5 : 1.0;
 
     return Padding(
       key: Key('PT${episode.guid}'),
@@ -42,46 +39,24 @@ class EpisodeTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: Opacity(
-              opacity: opacity,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    episode.title!,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
-                    style: textTheme.bodyLarge,
-                  ),
-                  EpisodeSubtitle(episode),
-                  if (progress > 0 && progress < 1)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(2.0),
-                        child: SizedBox(
-                          width: 96.0,
-                          height: 3.0,
-                          child: LinearProgressIndicator(
-                            value: progress,
-                            backgroundColor: palette.tintStrong,
-                            color: palette.accent,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  episode.title!,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                  style: textTheme.bodyLarge,
+                ),
+                EpisodeSubtitle(episode),
+              ],
             ),
           ),
           const SizedBox(width: 12.0),
-          Opacity(
-            opacity: opacity,
-            child: EpisodeTransportControls(
-              episode: episode,
-              download: download,
-              play: play,
-            ),
+          EpisodeTransportControls(
+            episode: episode,
+            download: download,
+            play: play,
           ),
         ],
       ),
@@ -135,8 +110,7 @@ class EpisodeTransportControls extends StatelessWidget {
   }
 }
 
-/// This class builds the subtitle line for an episode. This consists of the publication date,
-/// episode length, time remaining (if episode has been started) and file size.
+/// The subtitle line of a recording: its length, and the date for the talks only.
 class EpisodeSubtitle extends StatelessWidget {
   final Episode episode;
   final String date;
@@ -156,7 +130,6 @@ class EpisodeSubtitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final timeRemaining = episode.timeRemaining;
     final parts = <String>[];
     final semanticParts = <String>[];
 
@@ -184,15 +157,6 @@ class EpisodeSubtitle extends StatelessWidget {
       }
     }
 
-    if (timeRemaining.inSeconds > 0) {
-      if (timeRemaining.inSeconds < 60) {
-        parts.add(L.of(context)!.episode_time_second_remaining(timeRemaining.inSeconds.toString()));
-        semanticParts.add(L.of(context)!.episode_semantic_time_second_remaining(timeRemaining.inSeconds.toString()));
-      } else {
-        parts.add(L.of(context)!.episode_time_minute_remaining(timeRemaining.inMinutes.toString()));
-        semanticParts.add(L.of(context)!.episode_semantic_time_minute_remaining(timeRemaining.inMinutes.toString()));
-      }
-    }
 
     if (parts.isEmpty) {
       return const SizedBox.shrink();

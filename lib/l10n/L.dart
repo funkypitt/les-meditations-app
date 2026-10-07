@@ -287,6 +287,16 @@ class L {
         );
   }
 
+  String get stop_button_label {
+    return message('stop_button_label') ??
+        Intl.message(
+          'Stop and go back to the beginning',
+          name: 'stop_button_label',
+          desc: 'Semantic label for the stop button',
+          locale: localeName,
+        );
+  }
+
   String get pause_button_label {
     return message('pause_button_label') ??
         Intl.message(

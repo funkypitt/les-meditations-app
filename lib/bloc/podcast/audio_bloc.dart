@@ -18,6 +18,7 @@ enum TransitionState {
   play,
   pause,
   stop,
+  reset,
   fastforward,
   rewind,
 }
@@ -115,6 +116,9 @@ class AudioBloc extends Bloc {
           break;
         case TransitionState.stop:
           await audioPlayerService.stop();
+          break;
+        case TransitionState.reset:
+          await audioPlayerService.reset();
           break;
       }
     });

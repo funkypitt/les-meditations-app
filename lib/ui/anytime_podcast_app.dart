@@ -208,6 +208,8 @@ class AnytimePodcastAppState extends State<AnytimePodcastApp> {
           Locale('zh_Hans', ''),
         ],
         theme: theme,
+        // The mini player sits under the navigator: it is on every screen.
+        builder: (context, child) => MiniPlayerHost(child: child!),
         home: const AnytimeHomePage(title: 'enpleineconscience.ch'),
       ),
     );
@@ -416,7 +418,6 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
                 ],
               ),
             ),
-            const MiniPlayer(),
           ],
         ),
         bottomNavigationBar: StreamBuilder<int>(

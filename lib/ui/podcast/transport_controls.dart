@@ -5,13 +5,10 @@
 import 'package:anytime/bloc/podcast/audio_bloc.dart';
 import 'package:anytime/bloc/podcast/episode_bloc.dart';
 import 'package:anytime/bloc/podcast/podcast_bloc.dart';
-import 'package:anytime/bloc/settings/settings_bloc.dart';
-import 'package:anytime/entities/app_settings.dart';
 import 'package:anytime/entities/downloadable.dart';
 import 'package:anytime/entities/episode.dart';
 import 'package:anytime/l10n/L.dart';
 import 'package:anytime/services/audio/audio_player_service.dart';
-import 'package:anytime/ui/podcast/now_playing.dart';
 import 'package:anytime/ui/widgets/action_text.dart';
 import 'package:anytime/ui/widgets/download_button.dart';
 import 'package:anytime/ui/widgets/play_pause_button.dart';
@@ -35,7 +32,6 @@ class PlayControl extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final audioBloc = Provider.of<AudioBloc>(context, listen: false);
-    final settings = Provider.of<SettingsBloc>(context, listen: false).currentSettings;
 
     return SizedBox(
       height: 48.0,
@@ -73,7 +69,6 @@ class PlayControl extends StatelessWidget {
                     return InkWell(
                       onTap: () {
                         audioBloc.transitionState(TransitionState.play);
-                        optionalShowNowPlaying(context, settings);
                       },
                       child: PlayPauseButton(
                         title: episode.title!,
@@ -89,7 +84,6 @@ class PlayControl extends StatelessWidget {
                 return InkWell(
                   onTap: () {
                     audioBloc.play(episode);
-                    optionalShowNowPlaying(context, settings);
                   },
                   child: PlayPauseButton(
                     title: episode.title!,
@@ -116,7 +110,6 @@ class PlayControl extends StatelessWidget {
                 return InkWell(
                   onTap: () {
                     audioBloc.play(episode);
-                    optionalShowNowPlaying(context, settings);
                   },
                   child: PlayPauseButton(
                     title: episode.title!,
@@ -139,20 +132,6 @@ class PlayControl extends StatelessWidget {
     );
   }
 
-  /// If we have the 'show now playing upon play' option set to true, launch
-  /// the [NowPlaying] widget automatically.
-  void optionalShowNowPlaying(BuildContext context, AppSettings settings) {
-    if (settings.autoOpenNowPlaying) {
-      Navigator.push(
-        context,
-        MaterialPageRoute<void>(
-          builder: (context) => const NowPlaying(),
-          settings: const RouteSettings(name: 'nowplaying'),
-          fullscreenDialog: false,
-        ),
-      );
-    }
-  }
 }
 
 class DownloadControl extends StatelessWidget {

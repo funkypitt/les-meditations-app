@@ -68,16 +68,6 @@ class _SettingsState extends State<Settings> {
                       height: 0,
                       width: 0,
                     ),
-              SettingsDividerLabel(label: L.of(context)!.settings_playback_divider_label),
-              MergeSemantics(
-                child: ListTile(
-                  title: Text(L.of(context)!.settings_auto_open_now_playing),
-                  trailing: Switch.adaptive(
-                    value: snapshot.data!.autoOpenNowPlaying,
-                    onChanged: (value) => setState(() => settingsBloc.setAutoOpenNowPlaying(value)),
-                  ),
-                ),
-              ),
               SettingsDividerLabel(label: L.of(context)!.settings_podcast_management_divider_label),
               const EpisodeRefreshWidget(),
               MergeSemantics(

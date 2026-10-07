@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:anytime/l10n/L.dart';
 import 'package:flutter/material.dart';
 
-/// Simple widget for rendering either the standard Android close or iOS Back button.
+/// Back button: an arrow on both platforms (a cross reads as "cancel", not "back").
 class PlatformBackButton extends StatelessWidget {
   final Color decorationColour;
   final Color iconColour;
@@ -43,7 +43,7 @@ class PlatformBackButton extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.only(left: Platform.isIOS ? 8.0 : 0.0),
                   child: Icon(
-                    Platform.isIOS ? Icons.arrow_back_ios : Icons.close,
+                    Platform.isIOS ? Icons.arrow_back_ios : Icons.arrow_back,
                     size: Platform.isIOS ? 20.0 : 26.0,
                     semanticLabel: L.of(context)?.go_back_button_label,
                   ),

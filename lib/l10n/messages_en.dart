@@ -170,6 +170,7 @@ class MessageLookup extends MessageLookupByLibrary {
     'opml_export_button_label': MessageLookupByLibrary.simpleMessage('Export'),
     'opml_import_button_label': MessageLookupByLibrary.simpleMessage('Import'),
     'opml_import_export_label': MessageLookupByLibrary.simpleMessage('OPML Import/Export'),
+    'stop_button_label': MessageLookupByLibrary.simpleMessage('Stop and go back to the beginning'),
     'pause_button_label': MessageLookupByLibrary.simpleMessage('Pause episode'),
     'play_button_label': MessageLookupByLibrary.simpleMessage('Play episode'),
     'play_download_button_label': MessageLookupByLibrary.simpleMessage('Play downloaded episode'),
