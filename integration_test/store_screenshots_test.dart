@@ -34,7 +34,7 @@ void main() {
     await _settle(tester);
     await binding.takeScreenshot('01-accueil');
 
-    // The category page: header, description and the first recordings. On small
+    // The category page: name, description and the first recordings. On small
     // screens the category sits below the fold, so scroll it into view first.
     await tester.scrollUntilVisible(find.text(_category), 200, scrollable: find.byType(Scrollable).first);
     await _settle(tester, const Duration(milliseconds: 600));
@@ -44,34 +44,32 @@ void main() {
     await _settle(tester);
     await binding.takeScreenshot('02-categorie');
 
-    // Start the first recording: its row turns burgundy and the mini player appears.
+    // Start the first recording: its row turns burgundy and the player bar
+    // appears at the bottom of this very page.
     await tester.tap(play.first);
-    final pause = find.bySemanticsLabel(RegExp(r'^Pause '));
+    final pause = find.byKey(const Key('miniplayer_playpause'));
     await _waitFor(tester, pause, timeout: const Duration(seconds: 60));
     await _settle(tester, const Duration(seconds: 3));
     await binding.takeScreenshot('03-lecture');
 
-    // Back to the home page, then open the full player from the mini player.
-    await tester.tap(find.byIcon(Icons.close).first);
-    await _waitFor(tester, find.byKey(const Key('miniplayergesture')));
-    await _settle(tester);
-    await tester.tap(find.byKey(const Key('miniplayergesture')));
-    await _waitFor(tester, find.byIcon(Icons.keyboard_arrow_down));
+    // Back to the home page: the bar follows.
+    // (The home list is still scrolled to the category: wait for that text.)
+    await tester.tap(find.byIcon(Icons.arrow_back).first);
+    await _waitFor(tester, find.text(_category));
     await _settle(tester, const Duration(seconds: 2));
-    await binding.takeScreenshot('04-lecteur');
+    await binding.takeScreenshot('04-accueil-lecture');
 
-    // The same player in dark mode, through the app's own theme setting.
+    // The same in dark mode, through the app's own theme setting.
     app.settingsBloc!.theme('dark');
     await _settle(tester, const Duration(seconds: 2));
-    await binding.takeScreenshot('05-lecteur-sombre');
+    await binding.takeScreenshot('05-accueil-sombre');
     app.settingsBloc!.theme('system');
     await _settle(tester, const Duration(seconds: 2));
 
-    // Close the player and pause playback so the emulator is left quiet.
-    await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
-    await _waitFor(tester, find.byKey(const Key('miniplayergesture')));
-    await _settle(tester);
-    await binding.takeScreenshot('06-accueil-lecture');
+    // Stop: silence, back to 00:00, the recording still there to start again.
+    await tester.tap(find.byKey(const Key('miniplayer_stop')));
+    await _settle(tester, const Duration(seconds: 2));
+    await binding.takeScreenshot('06-accueil-arret');
   }, timeout: const Timeout(Duration(minutes: 6)));
 }
 

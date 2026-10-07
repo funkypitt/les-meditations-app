@@ -31,12 +31,13 @@ class PlayPauseButton extends StatelessWidget {
         width: 44.0,
         height: 44.0,
         decoration: BoxDecoration(
-          color: active ? palette.accent : palette.tint,
+          color: active ? palette.accent : Colors.transparent,
           shape: BoxShape.circle,
+          border: active ? null : Border.all(color: palette.ink, width: 1.5),
         ),
         child: Icon(
           icon,
-          size: 24.0,
+          size: 26.0,
           color: active ? palette.onAccent : palette.ink,
         ),
       ),
@@ -69,9 +70,12 @@ class PlayPauseBusyButton extends StatelessWidget {
           alignment: Alignment.center,
           children: <Widget>[
             Container(
-              decoration: BoxDecoration(color: palette.tint, shape: BoxShape.circle),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: palette.ink, width: 1.5),
+              ),
             ),
-            Icon(icon, size: 24.0, color: palette.ink),
+            Icon(icon, size: 26.0, color: palette.ink),
             SpinKitRing(
               lineWidth: 2.0,
               color: palette.accent,

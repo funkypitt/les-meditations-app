@@ -56,8 +56,8 @@ class DownloadButton extends StatelessWidget {
                 )
               : Icon(
                   icon,
-                  size: 22.0,
-                  color: done ? palette.accent : palette.inkSoft,
+                  size: 24.0,
+                  color: done ? palette.accent : palette.ink,
                 ),
         ),
       ),

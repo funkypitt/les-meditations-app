@@ -55,23 +55,10 @@ class _CatalogTile extends StatelessWidget {
           decoration: BoxDecoration(
             border: Border(bottom: BorderSide(color: palette.line)),
           ),
-          padding: const EdgeInsets.symmetric(vertical: 18.0),
-          child: Row(
-            children: [
-              Container(
-                width: 44.0,
-                height: 44.0,
-                decoration: BoxDecoration(color: palette.tint, shape: BoxShape.circle),
-                child: Icon(_iconForFeed(feed.feedUrl), color: palette.inkSoft, size: 22.0),
-              ),
-              const SizedBox(width: 18.0),
-              Expanded(
-                child: Text(
-                  feed.displayName,
-                  style: theme.textTheme.titleMedium,
-                ),
-              ),
-            ],
+          padding: const EdgeInsets.symmetric(vertical: 20.0),
+          child: Text(
+            feed.displayName,
+            style: theme.textTheme.titleMedium,
           ),
         ),
       ),
@@ -99,19 +86,5 @@ class _CatalogTile extends StatelessWidget {
     }
   }
 
-  IconData _iconForFeed(String url) {
-    if (url.contains('bodyscan')) return Icons.accessibility_new;
-    if (url.contains('respiration')) return Icons.air;
-    if (url.contains('etirements')) return Icons.sports_gymnastics;
-    if (url.contains('bienveillance')) return Icons.favorite;
-    if (url.contains('silence')) return Icons.volume_off;
-    if (url.contains('mini-meditations')) return Icons.timer;
-    if (url.contains('causeries')) return Icons.mic;
-    if (url.contains('suites')) return Icons.playlist_play;
-    if (url.contains('meditations-40')) return Icons.self_improvement;
-    if (url.contains('meditations-10')) return Icons.self_improvement;
-    if (url.contains('theme-de-la-semaine')) return Icons.calendar_today;
-    if (url.contains('plusieurs-objets')) return Icons.spa;
-    return Icons.self_improvement;
-  }
+
 }

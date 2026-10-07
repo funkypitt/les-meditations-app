@@ -48,7 +48,7 @@ fi
 # device speaks something else (it only sticks once the app is installed).
 device_locale=$(adb_ shell getprop persist.sys.locale | tr -d '\r')
 if [ "${device_locale%%-*}" != "$LOCALE" ] && adb_ shell pm list packages | grep -q "^package:$PKG$"; then
-  adb_ shell cmd locale set-app-locales "$PKG" --user 0 --locale-tags "${LOCALE_TAG[$LOCALE]}" >/dev/null 2>&1 \
+  adb_ shell cmd locale set-app-locales "$PKG" --user 0 --locales "${LOCALE_TAG[$LOCALE]}" >/dev/null 2>&1 \
     || echo "!! could not set the app locale to $LOCALE; screenshots will be in $device_locale" >&2
 fi
 
@@ -76,12 +76,12 @@ for t in "${targets[@]}"; do
   w=${size%x*}; h=${size#*x}
   for f in "$OUT/$t"/*.png; do
     [ -e "$f" ] || { echo "!! no screenshots for $t" >&2; continue; }
-    convert "$f" -background "#FBF5F2" -alpha remove -alpha off -define png:color-type=2 "$f"
+    convert "$f" -background "#FFFFFF" -alpha remove -alpha off -define png:color-type=2 "$f"
     got=$(identify -format '%wx%h' "$f")
     if [ "$got" != "$size" ]; then echo "!! $f is $got, expected $size" >&2; fi
   done
   ls "$OUT/$t"
 done
 
-adb_ shell cmd locale set-app-locales "$PKG" --user 0 --locale-tags "" >/dev/null 2>&1 || true
+adb_ shell cmd locale set-app-locales "$PKG" --user 0 --locales "" >/dev/null 2>&1 || true
 echo "== done: $OUT"

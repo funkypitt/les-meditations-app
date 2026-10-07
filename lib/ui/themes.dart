@@ -5,11 +5,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// The palette comes from the enpleineconscience.ch logo and nothing else: the
-/// warm off-white ground, the mauve-brown of the figure and the burgundy of the
-/// cushion. Burgundy is the only strong colour and is reserved for what plays:
-/// the play button, the progress track, the selected tab. Everything else is a
-/// tint of the mauve, and nothing carries a shadow.
+/// Paper and ink, as in the Reader's apps: black type on a white page, white on
+/// black at night, hairlines instead of tinted boxes, no shadows anywhere.
+/// Burgundy, from the logo, is the one accent and is reserved for what plays:
+/// the play button and the progress line.
 class Palette {
   final Color ground; // scaffold, app bar, sheets
   final Color tint; // soft surfaces: rows, chips, quiet buttons
@@ -34,26 +33,26 @@ class Palette {
   });
 
   static const light = Palette(
-    ground: Color(0xFFFBF5F2),
-    tint: Color(0xFFF1E6E2),
-    tintStrong: Color(0xFFE6D5CF),
-    ink: Color(0xFF2B1D1D),
-    inkSoft: Color(0xFF7B5B5B),
-    line: Color(0xFFEADCD7),
+    ground: Color(0xFFFFFFFF),
+    tint: Color(0xFFF3F3F3),
+    tintStrong: Color(0xFFE3E3E3),
+    ink: Color(0xFF111111),
+    inkSoft: Color(0xFF666666),
+    line: Color(0xFFDDDDDD),
     accent: Color(0xFF5C1010),
-    onAccent: Color(0xFFFBF5F2),
+    onAccent: Color(0xFFFFFFFF),
     brightness: Brightness.light,
   );
 
   static const dark = Palette(
-    ground: Color(0xFF1B1515),
-    tint: Color(0xFF2A2222),
-    tintStrong: Color(0xFF3A2F2F),
-    ink: Color(0xFFF3E9E6),
-    inkSoft: Color(0xFFC4A8A8),
-    line: Color(0xFF322828),
-    accent: Color(0xFFB5504E),
-    onAccent: Color(0xFF1B1515),
+    ground: Color(0xFF000000),
+    tint: Color(0xFF161616),
+    tintStrong: Color(0xFF2A2A2A),
+    ink: Color(0xFFFFFFFF),
+    inkSoft: Color(0xFFA0A0A0),
+    line: Color(0xFF333333),
+    accent: Color(0xFFC2504E),
+    onAccent: Color(0xFFFFFFFF),
     brightness: Brightness.dark,
   );
 
@@ -61,7 +60,7 @@ class Palette {
       Theme.of(context).brightness == Brightness.dark ? dark : light;
 }
 
-const String _fontFamily = 'Montserrat';
+const String _fontFamily = 'Literata';
 
 TextTheme _textTheme(Palette p) {
   TextStyle s(double size, double height, FontWeight weight, {Color? color, double spacing = 0}) => TextStyle(
@@ -74,21 +73,21 @@ TextTheme _textTheme(Palette p) {
       );
 
   return TextTheme(
-    displayLarge: s(40, 48, FontWeight.w700, spacing: -0.5),
-    displayMedium: s(34, 42, FontWeight.w700, spacing: -0.5),
-    displaySmall: s(30, 38, FontWeight.w700, spacing: -0.25),
-    headlineLarge: s(28, 36, FontWeight.w700, spacing: -0.25),
-    headlineMedium: s(24, 32, FontWeight.w700, spacing: -0.25),
+    displayLarge: s(40, 48, FontWeight.w700),
+    displayMedium: s(34, 42, FontWeight.w700),
+    displaySmall: s(30, 38, FontWeight.w700),
+    headlineLarge: s(28, 36, FontWeight.w700),
+    headlineMedium: s(24, 32, FontWeight.w700),
     headlineSmall: s(22, 30, FontWeight.w700),
-    titleLarge: s(22, 30, FontWeight.w500),
-    titleMedium: s(18, 26, FontWeight.w500),
-    titleSmall: s(16, 22, FontWeight.w500),
-    bodyLarge: s(17, 25, FontWeight.w400),
-    bodyMedium: s(16, 24, FontWeight.w400),
-    bodySmall: s(14, 20, FontWeight.w400, color: p.inkSoft),
-    labelLarge: s(16, 22, FontWeight.w500),
-    labelMedium: s(14, 20, FontWeight.w500),
-    labelSmall: s(13, 18, FontWeight.w500, color: p.inkSoft),
+    titleLarge: s(23, 31, FontWeight.w700),
+    titleMedium: s(19, 27, FontWeight.w400),
+    titleSmall: s(17, 24, FontWeight.w400),
+    bodyLarge: s(18, 26, FontWeight.w400),
+    bodyMedium: s(17, 25, FontWeight.w400),
+    bodySmall: s(15, 21, FontWeight.w400, color: p.inkSoft),
+    labelLarge: s(17, 24, FontWeight.w700),
+    labelMedium: s(15, 21, FontWeight.w400),
+    labelSmall: s(14, 19, FontWeight.w400, color: p.inkSoft),
   );
 }
 
@@ -168,8 +167,8 @@ ThemeData _buildTheme(Palette p) {
     disabledColor: p.inkSoft.withValues(alpha: 0.4),
     secondaryHeaderColor: p.ground,
     hintColor: p.inkSoft,
-    iconTheme: IconThemeData(color: p.inkSoft, size: 24),
-    primaryIconTheme: IconThemeData(color: p.inkSoft, size: 24),
+    iconTheme: IconThemeData(color: p.ink, size: 24),
+    primaryIconTheme: IconThemeData(color: p.ink, size: 24),
     dividerTheme: DividerThemeData(color: p.line, thickness: 1, space: 1),
     appBarTheme: AppBarTheme(
       backgroundColor: p.ground,
@@ -178,7 +177,7 @@ ThemeData _buildTheme(Palette p) {
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: true,
-      iconTheme: IconThemeData(color: p.inkSoft),
+      iconTheme: IconThemeData(color: p.ink),
       titleTextStyle: textTheme.titleMedium,
       systemOverlayStyle: overlay,
     ),
@@ -186,12 +185,13 @@ ThemeData _buildTheme(Palette p) {
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: p.ground,
       surfaceTintColor: Colors.transparent,
-      indicatorColor: p.tintStrong,
+      indicatorColor: Colors.transparent,
       elevation: 0,
       height: 72,
       labelTextStyle: WidgetStateProperty.resolveWith(
         (states) => textTheme.labelMedium!.copyWith(
           color: states.contains(WidgetState.selected) ? p.ink : p.inkSoft,
+          fontWeight: states.contains(WidgetState.selected) ? FontWeight.w700 : FontWeight.w400,
         ),
       ),
       iconTheme: WidgetStateProperty.resolveWith(
@@ -204,7 +204,7 @@ ThemeData _buildTheme(Palette p) {
       shadowColor: Colors.transparent,
       elevation: 0,
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
     ),
     listTileTheme: ListTileThemeData(
       iconColor: p.inkSoft,
@@ -216,7 +216,7 @@ ThemeData _buildTheme(Palette p) {
     dialogTheme: DialogThemeData(
       backgroundColor: p.ground,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       titleTextStyle: textTheme.titleLarge,
       contentTextStyle: textTheme.bodyMedium,
     ),
@@ -224,14 +224,14 @@ ThemeData _buildTheme(Palette p) {
       backgroundColor: p.ground,
       modalBackgroundColor: p.ground,
       surfaceTintColor: Colors.transparent,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(),
       dragHandleColor: p.tintStrong,
       showDragHandle: false,
     ),
     popupMenuTheme: PopupMenuThemeData(
       color: p.ground,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       textStyle: textTheme.bodyMedium,
     ),
     tabBarTheme: TabBarThemeData(
@@ -261,7 +261,7 @@ ThemeData _buildTheme(Palette p) {
       style: TextButton.styleFrom(
         foregroundColor: p.accent,
         textStyle: textTheme.labelLarge,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -269,7 +269,7 @@ ThemeData _buildTheme(Palette p) {
         foregroundColor: p.ink,
         side: BorderSide(color: p.tintStrong),
         textStyle: textTheme.labelLarge,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
@@ -277,7 +277,7 @@ ThemeData _buildTheme(Palette p) {
         backgroundColor: p.accent,
         foregroundColor: p.onAccent,
         textStyle: textTheme.labelLarge,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -287,11 +287,11 @@ ThemeData _buildTheme(Palette p) {
         elevation: 0,
         shadowColor: Colors.transparent,
         textStyle: textTheme.labelLarge,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
     ),
     iconButtonTheme: IconButtonThemeData(
-      style: IconButton.styleFrom(foregroundColor: p.inkSoft, highlightColor: p.tintStrong),
+      style: IconButton.styleFrom(foregroundColor: p.ink, highlightColor: p.tintStrong),
     ),
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith(
@@ -331,7 +331,7 @@ ThemeData _buildTheme(Palette p) {
       contentTextStyle: textTheme.bodyMedium!.copyWith(color: p.ground),
       actionTextColor: p.tintStrong,
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
     ),
     tooltipTheme: TooltipThemeData(
       decoration: BoxDecoration(color: p.ink, borderRadius: BorderRadius.circular(8)),

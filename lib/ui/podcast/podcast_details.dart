@@ -16,11 +16,9 @@ import 'package:anytime/ui/podcast/playback_error_listener.dart';
 import 'package:anytime/ui/podcast/podcast_episode_list.dart';
 import 'package:anytime/ui/widgets/episode_filter_selector.dart';
 import 'package:anytime/ui/widgets/episode_sort_selector.dart';
-import 'package:anytime/ui/widgets/placeholder_builder.dart';
 import 'package:anytime/ui/widgets/platform_back_button.dart';
 import 'package:anytime/ui/widgets/platform_progress_indicator.dart';
 import 'package:anytime/ui/widgets/podcast_html.dart';
-import 'package:anytime/ui/widgets/podcast_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -353,7 +351,6 @@ class _PodcastTitleState extends State<PodcastTitle> with SingleTickerProviderSt
     final settings = Provider.of<SettingsBloc>(context, listen: false).currentSettings;
     final podcastBloc = Provider.of<PodcastBloc>(context, listen: false);
 
-    final placeholderBuilder = PlaceholderBuilder.of(context);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20.0, 4.0, 20.0, 0.0),
@@ -361,47 +358,11 @@ class _PodcastTitleState extends State<PodcastTitle> with SingleTickerProviderSt
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          // The category: its name, then its description. The artwork is the
+          // same logo for every category and the author line never changes.
           Padding(
-            padding: const EdgeInsets.only(bottom: 20.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                ExcludeSemantics(
-                  child: Hero(
-                    tag: '${widget.podcast.imageUrl}:${widget.podcast.link}',
-                    child: PodcastImage(
-                      key: Key('details${widget.podcast.imageUrl}'),
-                      url: widget.podcast.imageUrl ?? '',
-                      width: 88.0,
-                      height: 88.0,
-                      borderRadius: 18.0,
-                      placeholder: placeholderBuilder != null
-                          ? placeholderBuilder.builder()(context)
-                          : const Image(image: AssetImage('assets/images/meditation-placeholder-logo.png')),
-                      errorPlaceholder: placeholderBuilder != null
-                          ? placeholderBuilder.errorBuilder()(context)
-                          : const Image(image: AssetImage('assets/images/meditation-placeholder-logo.png')),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 18.0),
-                Expanded(
-                  child: MergeSemantics(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(widget.podcast.title, style: theme.textTheme.titleLarge),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4.0),
-                          child: Text(widget.podcast.copyright ?? '', style: theme.textTheme.bodySmall),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
+            child: Text(widget.podcast.title, style: theme.textTheme.titleLarge),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.start,

@@ -360,8 +360,7 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
                         child: Container(
                           width: 44,
                           height: 44,
-                          padding: const EdgeInsets.all(7),
-                          decoration: BoxDecoration(color: Palette.of(context).tint, shape: BoxShape.circle),
+                          padding: const EdgeInsets.all(4),
                           child: Image.asset('assets/images/meditation-logo-mark.png'),
                         ),
                       ),
@@ -551,7 +550,7 @@ class TitleWidget extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     const baseStyle = TextStyle(
       fontWeight: FontWeight.bold,
-      fontFamily: 'MontserratRegular',
+      fontFamily: 'Literata',
       fontSize: 18,
     );
 

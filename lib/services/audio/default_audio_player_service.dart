@@ -879,6 +879,22 @@ class _DefaultAudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   /// A pause longer than this is a new session: the next play starts at 00:00.
   static const staleAfter = Duration(minutes: 20);
 
+  /// A streamed meditation must survive a network blip without a word lost:
+  /// buffer far ahead (up to ten minutes) and start as soon as a few seconds
+  /// are in.
+  static const _loadConfiguration = AudioLoadConfiguration(
+    androidLoadControl: AndroidLoadControl(
+      minBufferDuration: Duration(minutes: 2),
+      maxBufferDuration: Duration(minutes: 10),
+      bufferForPlaybackDuration: Duration(seconds: 2),
+      bufferForPlaybackAfterRebufferDuration: Duration(seconds: 5),
+      backBufferDuration: Duration(seconds: 30),
+    ),
+    darwinLoadControl: DarwinLoadControl(
+      preferredForwardBufferDuration: Duration(minutes: 10),
+    ),
+  );
+
   DateTime? _pausedAt;
 
   _DefaultAudioPlayerHandler({
@@ -897,17 +913,14 @@ class _DefaultAudioPlayerHandler extends BaseAudioHandler with SeekHandler {
       _player = AudioPlayer(
         audioPipeline: _audioPipeline,
         userAgent: Environment.userAgent(),
+        audioLoadConfiguration: _loadConfiguration,
       );
     } else {
       _player = AudioPlayer(
-          userAgent: Environment.userAgent(),
-          useProxyForRequestHeaders: false,
-          audioLoadConfiguration: const AudioLoadConfiguration(
-            androidLoadControl: AndroidLoadControl(
-              backBufferDuration: Duration(seconds: 45),
-            ),
-            darwinLoadControl: DarwinLoadControl(),
-          ));
+        userAgent: Environment.userAgent(),
+        useProxyForRequestHeaders: false,
+        audioLoadConfiguration: _loadConfiguration,
+      );
     }
 
     /// List to events from the player itself, transform the player event to an audio service one
