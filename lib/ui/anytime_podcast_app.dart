@@ -356,15 +356,27 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
                   SliverVisibility(
                     visible: widget.topBarVisible,
                     sliver: SliverAppBar(
-                      title: ExcludeSemantics(
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          padding: const EdgeInsets.all(4),
-                          child: Image.asset('assets/images/meditation-logo-mark.png'),
-                        ),
+                      // A masthead: the mark and the name of the site, so that
+                      // everyone knows where they are.
+                      title: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ExcludeSemantics(
+                            child: SizedBox(
+                              width: 36,
+                              height: 36,
+                              child: Image.asset('assets/images/meditation-logo-mark.png'),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'enpleineconscience.ch',
+                            style: theme.textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                        ],
                       ),
-                      centerTitle: true,
+                      centerTitle: false,
+                      titleSpacing: 20,
                       backgroundColor: backgroundColour,
                       floating: false,
                       pinned: true,
@@ -542,32 +554,3 @@ class _AnytimeHomePageState extends State<AnytimeHomePage> with WidgetsBindingOb
   }
 }
 
-class TitleWidget extends StatelessWidget {
-  const TitleWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    const baseStyle = TextStyle(
-      fontWeight: FontWeight.bold,
-      fontFamily: 'Literata',
-      fontSize: 18,
-    );
-
-    return Padding(
-      padding: const EdgeInsets.only(left: 2.0),
-      child: Row(
-        children: <Widget>[
-          Text(
-            'enpleineconscience',
-            style: baseStyle.copyWith(color: const Color(0xFF7B5B5B)),
-          ),
-          Text(
-            '.ch',
-            style: baseStyle.copyWith(color: isDark ? Colors.white : Colors.black),
-          ),
-        ],
-      ),
-    );
-  }
-}

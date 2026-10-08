@@ -1,7 +1,7 @@
 name: anytime
 description: enpleineconscience.ch — Méditations guidées
 
-version: 5.0.11+50011
+version: 5.0.12+50012
 
 environment:
   sdk: '>=3.6.0 <4.0.0'
@@ -87,10 +87,3 @@ flutter:
     - assets/ca/lets-encrypt-r3.pem
     - assets/ca/globalsign-gcc-r6-alphassl-ca-2023.pem
 
-  fonts:
-    - family: Literata
-      fonts:
-        - asset: assets/fonts/Literata-Regular.ttf
-          weight: 400
-        - asset: assets/fonts/Literata-Bold.ttf
-          weight: 700

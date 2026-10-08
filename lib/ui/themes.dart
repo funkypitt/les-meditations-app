@@ -60,11 +60,10 @@ class Palette {
       Theme.of(context).brightness == Brightness.dark ? dark : light;
 }
 
-const String _fontFamily = 'Literata';
-
 TextTheme _textTheme(Palette p) {
+  // The platform's own sans (Roboto, San Francisco): the face of the rest of
+  // the phone, and the Reader's "sans" choice. Nothing bundled.
   TextStyle s(double size, double height, FontWeight weight, {Color? color, double spacing = 0}) => TextStyle(
-        fontFamily: _fontFamily,
         fontSize: size,
         height: height / size,
         fontWeight: weight,
@@ -137,7 +136,6 @@ ThemeData _buildTheme(Palette p) {
     useMaterial3: true,
     brightness: p.brightness,
     colorScheme: colorScheme,
-    fontFamily: _fontFamily,
     textTheme: textTheme,
     primaryTextTheme: textTheme,
   );
